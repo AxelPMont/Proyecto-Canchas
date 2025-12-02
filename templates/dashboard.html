@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrador - Portal Deportivo Municipal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <!-- CSS propio -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-brand">
+      <h3>PDM ADMIN</h3>
+      <p>Panel de Administración</p>
+    </div>
+
+    <div class="sidebar-menu">
+      <div class="menu-section">
+        <div class="menu-section-title">General</div>
+        <a class="menu-item active" data-section="dashboard">
+          <i class="bi bi-speedometer2"></i>
+          Dashboard
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title">Gestión de Torneos</div>
+        <a class="menu-item" data-section="teams">
+          <i class="bi bi-people-fill"></i>
+          Equipos
+        </a>
+        <a class="menu-item" data-section="groups">
+          <i class="bi bi-grid-3x3-gap-fill"></i>
+          Fase de Grupos
+        </a>
+        <a class="menu-item" data-section="bracket">
+          <i class="bi bi-diagram-3-fill"></i>
+          Eliminatorias
+        </a>
+        <a class="menu-item" data-section="matches">
+          <i class="bi bi-calendar-event"></i>
+          Partidos
+        </a>
+        <a class="menu-item" data-section="transmissions">
+          <i class="bi bi-camera-video-fill"></i>
+          Transmisiones
+        </a>
+
+        <a class="menu-item" data-section="publications">
+          <i class="bi bi-newspaper"></i>
+          Publicaciones
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title">Contenido</div>
+
+        <a class="menu-item" data-section="publications">
+          <i class="bi bi-newspaper"></i>
+          Publicaciones
+        </a>
+      </div>
+
+      <div class="menu-section">
+        <div class="menu-section-title">Configuración</div>
+        <a class="menu-item" data-section="fields">
+          <i class="bi bi-geo-alt-fill"></i>
+          Canchas
+        </a>
+        <a class="menu-item" data-section="formations">
+          <i class="bi bi-diagram-2-fill"></i>
+          Formaciones
+        </a>
+        <a class="menu-item" data-section="settings">
+          <i class="bi bi-gear-fill"></i>
+          Configuración
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-content">
+
+    <!-- TOPBAR -->
+    <div class="admin-topbar">
+      <div class="topbar-title">
+        <h2>Dashboard Principal</h2>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-admin">
+          <i class="bi bi-plus-circle me-2"></i>
+          Nuevo Torneo
+        </button>
+        <div class="user-info">
+          <div class="user-avatar">AD</div>
+          <div>
+            <strong>Admin</strong>
+            <div style="font-size: 0.85rem; color: #666;">Administrador</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT AREA -->
+    <div class="content-area">
+
+      <!-- DASHBOARD SECTION -->
+      <div class="content-section active" id="dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <i class="bi bi-trophy-fill" style="color: white;"></i>
+            </div>
+            <div class="stat-card-value">{{ resumen.torneos_activos or 0 }}</div>
+            <div class="stat-card-label">Torneos Activos</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+              <i class="bi bi-people-fill" style="color: white;"></i>
+            </div>
+            <div class="stat-card-value">{{ resumen.equipos_registrados or 0 }}</div>
+            <div class="stat-card-label">Equipos Registrados</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+              <i class="bi bi-calendar-event" style="color: white;"></i>
+            </div>
+            <div class="stat-card-value">{{ resumen.partidos_programados or 0 }}</div>
+            <div class="stat-card-label">Partidos Programados</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-card-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+              <i class="bi bi-camera-video-fill" style="color: white;"></i>
+            </div>
+            <div class="stat-card-value">{{ resumen.transmisiones_hoy or 0 }}</div>
+            <div class="stat-card-label">Transmisiones Hoy</div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Próximos Partidos</h3>
+            <a href="#matches" class="btn-admin btn-sm">Ver Todos</a>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Equipo Local</th>
+                <th>Equipo Visitante</th>
+                <th>Cancha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in proximos_partidos %}
+              <tr>
+                <td>
+                  {% if p.fecha_hora %}
+                  {{ p.fecha_hora.strftime('%d/%m/%Y %H:%M') }}
+                  {% endif %}
+                </td>
+                <td><strong>{{ p.equipo_local }}</strong></td>
+                <td><strong>{{ p.equipo_visitante }}</strong></td>
+                <td>{{ p.cancha }}</td>
+                <td>
+                  {% if p.estado == 'programado' %}
+                  <span class="badge bg-success">Programado</span>
+                  {% elif p.estado == 'en_juego' %}
+                  <span class="badge bg-danger">En juego</span>
+                  {% elif p.estado == 'finalizado' %}
+                  <span class="badge bg-info">Finalizado</span>
+                  {% else %}
+                  <span class="badge bg-warning">{{ p.estado }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <!-- Aquí luego puedes apuntar a rutas de edición -->
+                    <a class="btn-admin btn-sm btn-success" href="#matches">Editar</a>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6" class="text-center text-muted">
+                  No hay partidos próximos registrados.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TEAMS SECTION -->
+      <div class="content-section" id="teams">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Gestión de Equipos</h3>
+          </div>
+
+          <!-- IMPORTANTE: enctype para subir archivos -->
+          <form action="{{ url_for('ws_admin.crear_equipo') }}" method="POST" enctype="multipart/form-data">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Nombre del Equipo</label>
+                <input name="nombre" type="text" class="form-control" placeholder="Ej: Deportivo Municipal" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Categoría</label>
+                <input name="categoria" type="text" class="form-control" placeholder="Ej: Mayores, Sub-18">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Logo del Equipo</label>
+                <input name="logo" type="file" class="form-control" accept="image/*">
+              </div>
+            </div>
+
+            <button class="btn-admin" type="submit">
+              <i class="bi bi-save me-2"></i>
+              Guardar Equipo
+            </button>
+          </form>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Equipos Registrados</h3>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Logo</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for e in equipos %}
+              <tr>
+                <td>
+                  {% if e.logo_url %}
+                  {# Normalizamos la ruta para que SIEMPRE vaya a static/img #}
+                  {% set logo_name = e.logo_url.replace('/static/img/', '').replace('static/img/',
+                  '').replace('/admin/', '') %}
+
+                  <img src="{{ url_for('static', filename='img/' ~ logo_name) }}" alt="{{ e.nombre }}"
+                    style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+                  {% else %}
+                  <div class="team-logo-small" style="width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    {{ e.nombre[:2] | upper }}
+                  </div>
+                  {% endif %}
+                </td>
+                <td><strong>{{ e.nombre }}</strong></td>
+                <td>{{ e.categoria or '-' }}</td>
+                <td>
+                  <div class="btn-group">
+                    <form action="{{ url_for('ws_admin.eliminar_equipo', equipo_id=e.id) }}" method="POST"
+                      onsubmit="return confirm('¿Eliminar equipo {{ e.nombre }}?');">
+                      <button class="btn-admin btn-sm btn-danger" type="submit">Eliminar</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted">
+                  Aún no hay equipos registrados.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+
+      <!-- INICIO DE FASE DE GRUPOS -->
+
+
+      <!-- ============================
+     SECCIÓN DE GRUPOS
+============================ -->
+      <div class="content-section" id="groups">
+
+        <!-- GENERADOR DE GRUPOS -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Generador de Grupos</h3>
+          </div>
+
+          <form action="{{ url_for('ws_admin.generar_grupos') }}" method="POST">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Número de Grupos</label>
+                <input name="num_grupos" type="number" class="form-control" value="4" min="2" max="16" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Equipos por Grupo</label>
+                <input name="equipos_por_grupo" type="number" class="form-control" value="4" min="2" max="8" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Torneo</label>
+                <select name="torneo_id" class="form-control">
+                  {% for t in torneos %}
+                  <option value="{{ t.id }}" {% if torneo_id_activo and torneo_id_activo==t.id %}selected{% endif %}>
+                    {{ t.nombre }} ({{ t.temporada }})
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="mt-3 d-flex gap-3">
+              <button class="btn-admin" type="submit">
+                <i class="bi bi-shuffle me-2"></i>
+                Generar y guardar grupos aleatorios
+              </button>
+            </div>
+          </form>
+        </div>
+
+
+        <!-- LISTA DE GRUPOS + TABLA DE POSICIONES -->
+        <!-- LISTA DE GRUPOS + TABLA DE POSICIONES -->
+        <div class="groups-container">
+
+          {% if grupos and grupos|length > 0 %}
+
+          {% for g in grupos %}
+          <div class="group-card">
+            <div class="group-header">GRUPO {{ g.codigo }}</div>
+
+            <!-- LISTA DE EQUIPOS -->
+            {% if g.equipos and g.equipos|length > 0 %}
+            {% for eq in g.equipos %}
+            <div class="group-team">
+              {% if eq.logo_url %}
+              {# Normalizamos la ruta, igual que en la tabla de Equipos #}
+              {% set logo_name = eq.logo_url
+              .replace('/static/img/', '')
+              .replace('static/img/', '')
+              .replace('/admin/', '') %}
+
+              <img src="{{ url_for('static', filename='img/' ~ logo_name) }}" alt="{{ eq.nombre }}"
+                class="team-logo-small-img">
+              {% else %}
+              <div class="team-logo-small-fallback">
+                {{ eq.nombre[:2] | upper }}
+              </div>
+              {% endif %}
+              <span>{{ eq.nombre }}</span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p class="text-white-50">Sin equipos asignados.</p>
+            {% endif %}
+
+            <!-- TABLA DE POSICIONES -->
+            {% if tabla_posiciones[g.codigo] %}
+            <h6 class="text-info mt-3">Tabla de posiciones</h6>
+
+            <table class="table table-sm table-dark table-bordered mt-2 mb-0">
+              <thead>
+                <tr>
+                  <th>Equipo</th>
+                  <th>GF</th>
+                  <th>GC</th>
+                  <th>DG</th>
+                  <th>Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pos in tabla_posiciones[g.codigo] %}
+                <tr>
+                  <td>{{ pos.equipo }}</td>
+                  <td>{{ pos.gf }}</td>
+                  <td>{{ pos.gc }}</td>
+                  <td>{{ pos.dg }}</td>
+                  <td><strong>{{ pos.puntos }}</strong></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            {% endif %}
+
+          </div>
+          {% endfor %}
+
+          {% else %}
+          <div class="admin-card mt-3">
+            <p class="text-muted mb-0">
+              Aún no se han generado grupos para el torneo seleccionado.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+
+
+
+        <!-- ============================
+         GENERAR CALENDARIO DE PARTIDOS
+         (solo si aún NO hay calendario)
+    ============================ -->
+        {% if not partidos_calendario %}
+        <div class="admin-card mt-4">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Generar calendario de partidos (fase de grupos)</h3>
+          </div>
+
+          <form action="{{ url_for('ws_admin.generar_calendario_grupos') }}" method="POST">
+            <input type="hidden" name="torneo_id" value="{{ torneo_id_activo }}">
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Fecha de inicio</label>
+                <input name="fecha_inicio" type="date" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Partidos por día</label>
+                <input type="text" class="form-control" value="3 (10:00, 12:00 y 14:00)" disabled>
+              </div>
+            </div>
+
+            <p class="mt-2 text-muted">
+              El sistema programará <strong>3 partidos por día</strong> con horarios fijos.
+              Solo se jugarán <strong>sábados y domingos</strong>.
+            </p>
+
+            <button class="btn-admin mt-2" type="submit">
+              <i class="bi bi-calendar-event me-2"></i>
+              Generar y guardar calendario
+            </button>
+          </form>
+        </div>
+        {% endif %}
+
+
+
+        <!-- ============================
+     TABLA DEL CALENDARIO
+============================ -->
+        <div class="admin-card mt-4">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Calendario de fase de grupos</h3>
+          </div>
+
+          {% if partidos_calendario %}
+          <table class="table table-striped table-dark mt-2">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Jornada</th>
+                <th>Grupo</th>
+                <th>Partido</th>
+                <th>Cancha</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in partidos_calendario %}
+              <tr>
+                <td>{{ p.fecha_hora.strftime('%d/%m/%Y') }}</td>
+                <td>{{ p.fecha_hora.strftime('%H:%M') }}</td>
+                <td>Fecha {{ p.jornada }}</td>
+                <td>Grupo {{ p.grupo_codigo }}</td>
+                <td>{{ p.equipo_local }} <strong>vs</strong> {{ p.equipo_visitante }}</td>
+                <td>{{ p.cancha }}</td>
+
+                <!-- BOTÓN MODAL RESULTADO / EDITAR -->
+                <td>
+                  {% if p.estado == 'finalizado' %}
+                  <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalResultado"
+                    data-partido="{{ p.id }}" data-local="{{ p.equipo_local }}"
+                    data-visitante="{{ p.equipo_visitante }}">
+                    Editar resultado
+                  </button>
+                  {% else %}
+                  <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalResultado"
+                    data-partido="{{ p.id }}" data-local="{{ p.equipo_local }}"
+                    data-visitante="{{ p.equipo_visitante }}">
+                    Registrar resultado
+                  </button>
+                  {% endif %}
+                </td>
+
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <!-- ============================
+         BOTÓN FINALIZAR FASE DE GRUPOS
+         (solo aparece si todos los partidos están finalizados)
+    ============================ -->
+          {% if fase_grupos_completa %}
+          <form action="{{ url_for('ws_admin.terminar_fase_grupos') }}" method="POST" class="mt-3 text-end">
+            <input type="hidden" name="torneo_id" value="{{ torneo_id_activo }}">
+
+            <button type="submit" class="btn btn-warning btn-lg">
+              <i class="bi bi-flag-checkered me-2"></i>
+              Terminar fase de grupos
+            </button>
+          </form>
+          {% endif %}
+
+          {% else %}
+          <p class="mt-2 text-muted">
+            No hay partidos programados todavía para la fase de grupos de este torneo.
+          </p>
+          {% endif %}
+
+        </div>
+
+
+      </div>
+
+
+      <!-- ============================
+     MODAL PARA RESULTADOS
+============================ -->
+      <div class="modal fade" id="modalResultado" tabindex="-1">
+        <div class="modal-dialog">
+          <form id="formResultado" method="POST" action="{{ url_for('ws_admin.guardar_resultado') }}">
+            <div class="modal-content text-dark">
+
+              <div class="modal-header">
+                <h5 class="modal-title">Registrar Resultado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body">
+
+                <input type="hidden" id="resultado_partido_id" name="partido_id">
+
+                <div class="mb-3">
+                  <label class="form-label">Equipo Local</label>
+                  <input type="text" class="form-control" id="local_nombre" disabled>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Goles Local</label>
+                  <input type="number" class="form-control" name="goles_local" min="0" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Equipo Visitante</label>
+                  <input type="text" class="form-control" id="visitante_nombre" disabled>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Goles Visitante</label>
+                  <input type="number" class="form-control" name="goles_visitante" min="0" required>
+                </div>
+
+              </div>
+
+              <div class="modal-footer">
+                <button class="btn btn-success" type="submit">
+                  Guardar Resultado
+                </button>
+              </div>
+
+            </div>
+          </form>
+        </div>
+      </div>
+
+
+
+
+      <!-- ============================
+     SCRIPT PARA MODAL
+============================ -->
+      <script>
+        var modal = document.getElementById('modalResultado');
+        modal.addEventListener('show.bs.modal', function (event) {
+
+          var button = event.relatedTarget;
+
+          var partidoId = button.getAttribute('data-partido');
+          var local = button.getAttribute('data-local');
+          var visitante = button.getAttribute('data-visitante');
+
+          document.getElementById('resultado_partido_id').value = partidoId;
+          document.getElementById('local_nombre').value = local;
+          document.getElementById('visitante_nombre').value = visitante;
+        });
+      </script>
+
+      <!-- fIN DE FASE DE GRUPOS -->
+
+
+
+
+
+      <div class="content-section" id="transmissions">
+
+        <!-- =========================== -->
+        <!-- FORMULARIO DE CONFIGURACIÓN -->
+        <!-- =========================== -->
+        <div class="admin-card" style="margin-bottom: 35px; padding: 0; overflow: hidden;">
+          <div class="transmission-header">
+            <h3>
+              <div class="transmission-icon">📡</div>
+              <div>
+                <div>Gestión de Transmisiones en Vivo</div>
+                <div class="transmission-subtitle">Configura y administra las transmisiones de los partidos</div>
+              </div>
+            </h3>
+          </div>
+
+          <div class="transmission-form-card">
+            <form action="{{ url_for('ws_admin.guardar_transmision') }}" method="POST" id="transmissionForm">
+
+              <!-- Sección 1: Partido -->
+              <div class="form-section">
+                <div class="form-section-title">
+                  <span>⚽</span> Seleccionar Partido
+                </div>
+                <div class="form-group">
+                  <select name="partido_id" class="form-control" required>
+                    <option value="">-- Selecciona un partido --</option>
+                    {% for p in partidos %}
+                    <option value="{{ p.id }}">
+                      {{ p.equipo_local }} vs {{ p.equipo_visitante }}
+                      {% if p.fecha_hora %}
+                      - {{ p.fecha_hora.strftime('%d/%m/%Y %H:%M') }}
+                      {% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Sección 2: Plataforma -->
+              <div class="form-section">
+                <div class="form-section-title">
+                  <span>📱</span> Plataforma de Transmisión
+                </div>
+                <div class="platform-selector">
+                  <label class="platform-option">
+                    <input type="radio" name="plataforma" value="YouTube" required>
+                    <div class="platform-content">
+                      <div class="platform-icon">▶️</div>
+                      <div class="platform-name">YouTube</div>
+                    </div>
+                    <div class="platform-check">✓</div>
+                  </label>
+
+                  <label class="platform-option">
+                    <input type="radio" name="plataforma" value="Facebook">
+                    <div class="platform-content">
+                      <div class="platform-icon">👥</div>
+                      <div class="platform-name">Facebook Live</div>
+                    </div>
+                    <div class="platform-check">✓</div>
+                  </label>
+
+                  <label class="platform-option">
+                    <input type="radio" name="plataforma" value="Twitch">
+                    <div class="platform-content">
+                      <div class="platform-icon">🎮</div>
+                      <div class="platform-name">Twitch</div>
+                    </div>
+                    <div class="platform-check">✓</div>
+                  </label>
+
+                  <label class="platform-option">
+                    <input type="radio" name="plataforma" value="Personalizada">
+                    <div class="platform-content">
+                      <div class="platform-icon">🔗</div>
+                      <div class="platform-name">Personalizada</div>
+                    </div>
+                    <div class="platform-check">✓</div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Sección 3: URL -->
+              <div class="form-section">
+                <div class="form-section-title">
+                  <span>🔗</span> URL de Transmisión
+                </div>
+                <div class="form-group">
+                  <input name="url_publica" type="url" class="form-control"
+                    placeholder="https://youtube.com/embed/... o https://facebook.com/live/..." required>
+                  <small class="form-text text-muted">
+                    Ingresa la URL completa donde se transmitirá el partido
+                  </small>
+                </div>
+              </div>
+
+              <!-- Sección 4: Estado -->
+              <div class="form-section">
+                <div class="form-section-title">
+                  <span>📊</span> Estado de la Transmisión
+                </div>
+                <div class="status-selector">
+                  <label class="status-option programada">
+                    <input type="radio" name="estado_transmision" value="programada" required>
+                    <div class="status-icon">📅</div>
+                    <div class="status-name">Programada</div>
+                  </label>
+
+                  <label class="status-option en-vivo">
+                    <input type="radio" name="estado_transmision" value="en_vivo">
+                    <div class="status-icon">🔴</div>
+                    <div class="status-name">En Vivo</div>
+                  </label>
+
+                  <label class="status-option finalizada">
+                    <input type="radio" name="estado_transmision" value="finalizada">
+                    <div class="status-icon">✅</div>
+                    <div class="status-name">Finalizada</div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Sección 5: Información Adicional -->
+              <div class="form-section">
+                <div class="form-section-title">
+                  <span>📹</span> Información Adicional
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Cámara / Dispositivo</label>
+                  <input type="text" name="camara" class="form-control"
+                    placeholder="Ej: Celular Samsung S21, Cámara Sony HDR-CX405">
+                </div>
+              </div>
+
+              <button class="btn-admin" type="submit" style="width: 100%; padding: 15px; font-size: 1.1em;">
+                <i class="bi bi-save me-2"></i>
+                Guardar Configuración de Transmisión
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- =========================== -->
+        <!-- LISTA DE TRANSMISIONES ACTIVAS -->
+        <!-- =========================== -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">
+              <span style="font-size: 1.5em; margin-right: 10px;">📺</span>
+              Transmisiones Activas
+            </h3>
+          </div>
+
+          {% if transmisiones_activas %}
+          <div class="transmissions-grid">
+            {% for tr in transmisiones_activas %}
+            <div class="transmission-card {% if tr.estado == 'en_vivo' %}live{% endif %}">
+              <div class="transmission-thumbnail">
+                {% if tr.estado == 'en_vivo' %}
+                <span class="transmission-badge badge-live">
+                  <span class="live-dot"></span> EN VIVO
+                </span>
+                {% elif tr.estado == 'programada' %}
+                <span class="transmission-badge badge-scheduled">📅 PROGRAMADA</span>
+                {% else %}
+                <span class="transmission-badge badge-finished">✓ FINALIZADA</span>
+                {% endif %}
+              </div>
+
+              <div class="transmission-content">
+                <div class="transmission-match">
+                  {{ tr.equipo_local }} vs {{ tr.equipo_visitante }}
+                </div>
+
+                <div class="transmission-info">
+                  <div class="transmission-info-item">
+                    <span>📅</span>
+                    {% if tr.fecha_hora %}
+                    {{ tr.fecha_hora.strftime('%d/%m/%Y') }}
+                    {% else %}
+                    Sin fecha
+                    {% endif %}
+                  </div>
+                  <div class="transmission-info-item">
+                    <span>⏰</span>
+                    {% if tr.fecha_hora %}
+                    {{ tr.fecha_hora.strftime('%H:%M') }}
+                    {% else %}
+                    --:--
+                    {% endif %}
+                  </div>
+                </div>
+
+                <div class="transmission-platform">
+                  {% if tr.plataforma == 'YouTube' %}
+                  ▶️
+                  {% elif tr.plataforma == 'Facebook' %}
+                  👥
+                  {% elif tr.plataforma == 'Twitch' %}
+                  🎮
+                  {% else %}
+                  🔗
+                  {% endif %}
+                  {{ tr.plataforma }}
+                </div>
+
+                <div class="transmission-actions">
+                  {# ID de partido: probamos varias claves posibles del dict #}
+                  {% set pid = tr.get('partido_id') or tr.get('id_partido') or tr.get('id') %}
+
+                  <!-- Ver transmisión pública -->
+                  <a class="transmission-btn primary" href="{{ tr.url_publica }}" target="_blank">
+                    {% if tr.estado == 'en_vivo' %}
+                    <span>🔴</span> Ver en Vivo
+                    {% else %}
+                    <span>👁️</span> Ver Transmisión
+                    {% endif %}
+                  </a>
+
+                  <!-- Administrar transmisión (overlay marcador) -->
+                  {% if pid %}
+                  <a class="transmission-btn admin" href="{{ url_for('ws_admin.transmision_admin', partido_id=pid) }}"
+                    target="_blank">
+                    <span>🛠</span> Administrar
+                  </a>
+                  {% endif %}
+
+                  <!-- Editar configuración -->
+                  <button class="transmission-btn secondary" type="button" onclick="openEditTransmissionModal(this)"
+                    data-partido-id="{{ pid }}" data-plataforma="{{ tr.plataforma }}" data-url="{{ tr.url_publica }}"
+                    data-estado="{{ tr.estado }}" data-camara="{{ tr.camara or '' }}">
+                    <span>✏️</span> Editar
+                  </button>
+                </div>
+
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon">📺</div>
+            <div class="empty-state-title">No hay transmisiones registradas</div>
+            <div class="empty-state-text">
+              Configura tu primera transmisión usando el formulario de arriba
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+
+      </div>
+
+      <!-- MODAL EDITAR TRANSMISIÓN -->
+      <div class="modal fade" id="editTransmissionModal" tabindex="-1">
+        <div class="modal-dialog">
+          <form method="POST" action="{{ url_for('ws_admin.guardar_transmision') }}">
+            <div class="modal-content text-dark">
+              <div class="modal-header">
+                <h5 class="modal-title">Editar transmisión</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body">
+                <!-- Partido (hidden, lo usamos para identificar qué transmisión actualizar) -->
+                <input type="hidden" name="partido_id" id="edit_partido_id">
+
+                <div class="mb-3">
+                  <label class="form-label">Plataforma</label>
+                  <select class="form-control" name="plataforma" id="edit_plataforma">
+                    <option value="YouTube">YouTube</option>
+                    <option value="Facebook">Facebook Live</option>
+                    <option value="Twitch">Twitch</option>
+                    <option value="Personalizada">URL Personalizada</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">URL de transmisión</label>
+                  <input type="url" class="form-control" name="url_publica" id="edit_url_publica" required>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Estado de la transmisión</label>
+                  <select class="form-control" name="estado_transmision" id="edit_estado_transmision">
+                    <option value="programada">Programada</option>
+                    <option value="en_vivo">En vivo</option>
+                    <option value="finalizada">Finalizada</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label">Cámara / dispositivo</label>
+                  <input type="text" class="form-control" name="camara" id="edit_camara">
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                  Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  Guardar cambios
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+
+
+      <!-- INCIO DE FASE DE ELIMINATORIAS -->
+
+      <div class="content-section" id="bracket">
+        <div class="admin-card">
+          <div class="admin-card-header d-flex justify-content-between align-items-center">
+            <div>
+              <h3 class="admin-card-title mb-0">Cuadro de Eliminatorias</h3>
+              <small class="text-muted d-block">
+                Formato: 1° A vs 2° B, 1° C vs 2° D, 1° B vs 2° A, 1° D vs 2° C.
+              </small>
+            </div>
+
+            {% if llaves_cuartos %}
+            <span class="badge bg-success">Llaves generadas</span>
+            {% else %}
+            <span class="badge bg-secondary">Esperando fin de fase de grupos</span>
+            {% endif %}
+          </div>
+
+          <div class="bracket-container mt-3">
+            {% if not llaves_cuartos %}
+            <p class="text-muted mb-0">
+              Cuando se termine la fase de grupos y se generen las llaves,
+              aquí aparecerá el cuadro de eliminatorias (cuartos, semifinales y final).
+            </p>
+            {% else %}
+
+            <!-- WRAPPER PRINCIPAL -->
+            <div class="bracket-main-wrapper">
+
+              <div class="bracket-content-wrapper">
+
+                <div class="round-labels-grid">
+                  <div class="round-label-header">CUARTOS DE FINAL</div>
+                  <div class="round-label-header">SEMIFINALES</div>
+                  <div class="round-label-header">FINAL</div>
+                </div>
+
+                <div class="bracket-grid">
+
+                  <!-- ================= CUARTOS ================= -->
+                  <div class="bracket-round">
+                    {% for m in llaves_cuartos %}
+                    <div class="match-card" data-match="qf{{ loop.index }}" data-partido-id="{{ m.id }}">
+
+                      <div class="match-header">
+                        QF{{ loop.index }} · {{ m.descripcion }}
+                      </div>
+
+                      <div class="match-body">
+
+                        <div class="team-row" data-team-id="{{ m.local_id }}" data-partido-id="{{ m.id }}"
+                          data-team="team_{{ m.local|lower|replace(' ', '_') }}">
+                          <span class="seed">{{ m.seed_local }}</span>
+                          <span class="team-name">{{ m.local }}</span>
+                        </div>
+
+                        <div class="team-row" data-team-id="{{ m.visitante_id }}" data-partido-id="{{ m.id }}"
+                          data-team="team_{{ m.visitante|lower|replace(' ', '_') }}">
+                          <span class="seed">{{ m.seed_visitante }}</span>
+                          <span class="team-name">{{ m.visitante }}</span>
+                        </div>
+
+                        <!-- Marcador QF -->
+                        <div class="score-row" data-partido-id="{{ m.id }}">
+                          <input type="number" class="score-input goal-local" min="0" placeholder="0"
+                            value="{{ m.goles_local or '' }}">
+                          <span class="score-separator">-</span>
+                          <input type="number" class="score-input goal-visitante" min="0" placeholder="0"
+                            value="{{ m.goles_visitante or '' }}">
+                        </div>
+
+                      </div>
+
+                      <button class="advance-btn" onclick="advanceTeamBracket('qf{{ loop.index }}',
+                                                    'sf{{ ((loop.index - 1) // 2) + 1 }}')">
+                        Avanzar ganador ▶
+                      </button>
+
+                    </div>
+                    {% endfor %}
+                  </div>
+
+                  <!-- ================= SEMIFINALES ================= -->
+                  <div class="bracket-round">
+
+                    <!-- SF1 -->
+                    <div class="match-card" data-match="sf1" data-partido-id="{{ semifinales[0].id }}">
+
+                      <div class="match-header">SEMIFINAL 1</div>
+
+                      <div class="match-body">
+
+                        {% if semifinales[0].local_id %}
+                        <div class="team-row" data-team-id="{{ semifinales[0].local_id }}"
+                          data-partido-id="{{ semifinales[0].id }}"
+                          data-team="team_{{ semifinales[0].local|lower|replace(' ', '_') }}">
+                          <span class="seed">{{ semifinales[0].seed_local }}</span>
+                          <span class="team-name">{{ semifinales[0].local }}</span>
+                        </div>
+                        {% else %}
+                        <div class="empty-slot-bracket" data-slot="0">Ganador QF1</div>
+                        {% endif %}
+
+                        {% if semifinales[0].visitante_id %}
+                        <div class="team-row" data-team-id="{{ semifinales[0].visitante_id }}"
+                          data-partido-id="{{ semifinales[0].id }}"
+                          data-team="team_{{ semifinales[0].visitante|lower|replace(' ', '_') }}">
+                          <span class="seed">{{ semifinales[0].seed_visitante }}</span>
+                          <span class="team-name">{{ semifinales[0].visitante }}</span>
+                        </div>
+                        {% else %}
+                        <div class="empty-slot-bracket" data-slot="1">Ganador QF2</div>
+                        {% endif %}
+
+                        {% if semifinales[0].local_id and semifinales[0].visitante_id %}
+                        <!-- Marcador SF1 -->
+                        <div class="score-row" data-partido-id="{{ semifinales[0].id }}">
+                          <input type="number" class="score-input goal-local" min="0"
+                            value="{{ semifinales[0].goles_local or '' }}">
+                          <span class="score-separator">-</span>
+                          <input type="number" class="score-input goal-visitante" min="0"
+                            value="{{ semifinales[0].goles_visitante or '' }}">
+                        </div>
+                        {% endif %}
+
+                      </div>
+
+                      <button class="advance-btn" onclick="advanceTeamBracket('sf1','final')" {% if not
+                        semifinales[0].local_id or not semifinales[0].visitante_id %}disabled{% endif %}>
+                        Avanzar ganador ▶
+                      </button>
+
+                    </div>
+
+                    <!-- SF2 -->
+                    <div class="match-card" data-match="sf2" data-partido-id="{{ semifinales[1].id }}">
+
+                      <div class="match-header">SEMIFINAL 2</div>
+
+                      <div class="match-body">
+
+                        {% if semifinales[1].local_id %}
+                        <div class="team-row" data-team-id="{{ semifinales[1].local_id }}"
+                          data-partido-id="{{ semifinales[1].id }}"
+                          data-team="team_{{ semifinales[1].local|lower|replace(' ', '_') }}">
+                          <span class="seed">{{ semifinales[1].seed_local }}</span>
+                          <span class="team-name">{{ semifinales[1].local }}</span>
+                        </div>
+                        {% else %}
+                        <div class="empty-slot-bracket" data-slot="0">Ganador QF3</div>
+                        {% endif %}
+
+                        {% if semifinales[1].visitante_id %}
+                        <div class="team-row" data-team-id="{{ semifinales[1].visitante_id }}"
+                          data-partido-id="{{ semifinales[1].id }}"
+                          data-team="team_{{ semifinales[1].visitante|lower|replace(' ', '_') }}">
+                          <span class="seed">{{ semifinales[1].seed_visitante }}</span>
+                          <span class="team-name">{{ semifinales[1].visitante }}</span>
+                        </div>
+                        {% else %}
+                        <div class="empty-slot-bracket" data-slot="1">Ganador QF4</div>
+                        {% endif %}
+
+                        {% if semifinales[1].local_id and semifinales[1].visitante_id %}
+                        <!-- Marcador SF2 -->
+                        <div class="score-row" data-partido-id="{{ semifinales[1].id }}">
+                          <input type="number" class="score-input goal-local" min="0"
+                            value="{{ semifinales[1].goles_local or '' }}">
+                          <span class="score-separator">-</span>
+                          <input type="number" class="score-input goal-visitante" min="0"
+                            value="{{ semifinales[1].goles_visitante or '' }}">
+                        </div>
+                        {% endif %}
+
+                      </div>
+
+                      <button class="advance-btn" onclick="advanceTeamBracket('sf2','final')" {% if not
+                        semifinales[1].local_id or not semifinales[1].visitante_id %}disabled{% endif %}>
+                        Avanzar ganador ▶
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                  <!-- ================= FINAL ================= -->
+                  <div class="bracket-round">
+
+                    <div class="match-card final-card" data-match="final" data-partido-id="{{ final.id }}">
+
+                      <div class="match-header">🏆 FINAL 🏆</div>
+
+                      <div class="match-body">
+
+                        {% if final.local_id %}
+                        <div class="team-row" data-team-id="{{ final.local_id }}" data-partido-id="{{ final.id }}"
+                          data-team="team_{{ final.local|lower|replace(' ', '_') }}">
+                          <span class="seed">{{ final.seed_local }}</span>
+                          <span class="team-name">{{ final.local }}</span>
+                        </div>
+                        {% else %}
+                        <div class="empty-slot-bracket" data-slot="0">Ganador SF1</div>
+                        {% endif %}
+
+                        {% if final.visitante_id %}
+                        <div class="team-row" data-team-id="{{ final.visitante_id }}" data-partido-id="{{ final.id }}"
+                          data-team="team_{{ final.visitante|lower|replace(' ', '_') }}">
+                          <span class="seed">{{ final.seed_visitante }}</span>
+                          <span class="team-name">{{ final.visitante }}</span>
+                        </div>
+                        {% else %}
+                        <div class="empty-slot-bracket" data-slot="1">Ganador SF2</div>
+                        {% endif %}
+
+                        {% if final.local_id and final.visitante_id %}
+                        <!-- Marcador FINAL -->
+                        <div class="score-row" data-partido-id="{{ final.id }}">
+                          <input type="number" class="score-input goal-local" min="0"
+                            value="{{ final.goles_local or '' }}">
+                          <span class="score-separator">-</span>
+                          <input type="number" class="score-input goal-visitante" min="0"
+                            value="{{ final.goles_visitante or '' }}">
+                        </div>
+                        {% endif %}
+
+                      </div>
+
+                      <button class="advance-btn" onclick="declareChampionBracket()" {% if not final.local_id or not
+                        final.visitante_id %}disabled{% endif %}>
+                        👑 Declarar Campeón
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                </div>
+
+                <!-- ===================== -->
+                <!-- JS COMPLETO CORREGIDO -->
+                <!-- ===================== -->
+                <script>
+                  (function () {
+
+                    // ===========================
+                    // MARCAR EQUIPO SELECCIONADO
+                    // ===========================
+                    function addTeamClickHandlersBracket(matchCard) {
+                      const rows = matchCard.querySelectorAll(".team-row");
+                      rows.forEach(row => {
+                        row.onclick = () => {
+                          rows.forEach(r => r.classList.remove("selected-row"));
+                          row.classList.add("selected-row");
+                        };
+                      });
+                    }
+
+                    // =====================
+                    // AVANZAR GANADOR (BD)
+                    // =====================
+                    window.advanceTeamBracket = function (currentMatch, nextMatch) {
+
+                      const matchCard = document.querySelector(`[data-match="${currentMatch}"]`);
+                      if (!matchCard) return;
+
+                      const selectedRow = matchCard.querySelector(".team-row.selected-row");
+                      if (!selectedRow) {
+                        alert("Selecciona un equipo ganador.");
+                        return;
+                      }
+
+                      const partidoId = selectedRow.dataset.partidoId;
+                      const ganadorId = selectedRow.dataset.teamId;
+
+                      // Leer goles usando las clases unificadas
+                      const scoreLocalInput = matchCard.querySelector(".goal-local");
+                      const scoreVisitInput = matchCard.querySelector(".goal-visitante");
+
+                      let golesLocal = null;
+                      let golesVisitante = null;
+
+                      if (scoreLocalInput && scoreVisitInput) {
+                        if (scoreLocalInput.value === "" || scoreVisitInput.value === "") {
+                          alert("Ingresa los goles de ambos equipos antes de avanzar.");
+                          return;
+                        }
+
+                        golesLocal = parseInt(scoreLocalInput.value, 10);
+                        golesVisitante = parseInt(scoreVisitInput.value, 10);
+
+                        if (
+                          isNaN(golesLocal) || isNaN(golesVisitante) ||
+                          golesLocal < 0 || golesVisitante < 0
+                        ) {
+                          alert("Los goles deben ser números válidos (0 o más).");
+                          return;
+                        }
+                      }
+
+                      fetch("{{ url_for('ws_admin.registrar_ganador_bracket') }}", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          partido_id: partidoId,
+                          ganador_id: ganadorId,
+                          goles_local: golesLocal,
+                          goles_visitante: golesVisitante
+                        })
+                      })
+                        .then(r => r.json())
+                        .then(resp => {
+                          if (!resp.ok) {
+                            alert("Error: " + (resp.error || "Error desconocido"));
+                            return;
+                          }
+                          avanzarUI(selectedRow, currentMatch, nextMatch);
+                        })
+                        .catch(() => alert("Error de red"));
+                    };
+
+                    // =====================
+                    // AVANZAR EN LA UI
+                    // =====================
+                    function avanzarUI(selectedRow, currentMatch, nextMatch) {
+
+                      const nextCard = document.querySelector(`[data-match="${nextMatch}"]`);
+                      if (!nextCard) return;
+
+                      const winnerName = selectedRow.querySelector(".team-name").textContent;
+                      const winnerSeed = selectedRow.querySelector(".seed").textContent;
+                      const winnerTeam = selectedRow.dataset.team;
+                      const teamId = selectedRow.dataset.teamId;
+                      const nextPartido = nextCard.dataset.partidoId;
+
+                      // 1) Tomar el PRIMER slot libre y convertirlo en team-row
+                      const freeSlot = nextCard.querySelector(".empty-slot-bracket");
+                      if (freeSlot) {
+                        freeSlot.classList.remove("empty-slot-bracket");
+                        freeSlot.classList.add("team-row");
+                        freeSlot.setAttribute("data-team", winnerTeam);
+                        freeSlot.setAttribute("data-team-id", teamId);
+                        freeSlot.setAttribute("data-partido-id", nextPartido);
+
+                        freeSlot.innerHTML = `
+          <span class="seed">${winnerSeed}</span>
+          <span class="team-name">${winnerName}</span>
+        `;
+                      }
+
+                      // 2) Reactivar selección en los nuevos team-row
+                      addTeamClickHandlersBracket(nextCard);
+
+                      // 3) Si ya hay 2 equipos y aún no existe marcador, CREARLO
+                      const teamRowsNext = nextCard.querySelectorAll(".team-row").length;
+                      let scoreRow = nextCard.querySelector(".score-row");
+
+                      if (teamRowsNext === 2 && !scoreRow) {
+                        const matchBody = nextCard.querySelector(".match-body");
+                        scoreRow = document.createElement("div");
+                        scoreRow.classList.add("score-row");
+                        scoreRow.setAttribute("data-partido-id", nextPartido);
+
+                        scoreRow.innerHTML = `
+          <input type="number"
+                 class="score-input goal-local"
+                 min="0"
+                 placeholder="0">
+          <span class="score-separator">-</span>
+          <input type="number"
+                 class="score-input goal-visitante"
+                 min="0"
+                 placeholder="0">
+        `;
+
+                        matchBody.appendChild(scoreRow);
+                      }
+
+                      // 4) Habilitar botón del siguiente partido cuando tenga 2 equipos
+                      const nextBtn = nextCard.querySelector(".advance-btn");
+                      if (nextBtn && teamRowsNext === 2) {
+                        nextBtn.disabled = false;
+                      }
+
+                      // 5) Desactivar botón del partido actual y marcarlo como avanzado
+                      const currentBtn = document.querySelector(
+                        `[data-match="${currentMatch}"] .advance-btn`
+                      );
+                      if (currentBtn) {
+                        currentBtn.disabled = true;
+                        currentBtn.textContent = "✓ Avanzado";
+                      }
+                    }
+
+                    // =====================
+                    // INICIALIZAR HANDLERS
+                    // =====================
+                    document.addEventListener("DOMContentLoaded", () => {
+                      document.querySelectorAll(".match-card").forEach(card => {
+                        addTeamClickHandlersBracket(card);
+                      });
+                    });
+
+                  })();
+                </script>
+
+
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- FIN DE FASE DE ELIMINATORIAS -->
+        </div>
+      </div>
+
+
+
+      <!-- ========================= -->
+      <!--  SECCIÓN DE TRANSMISIONES -->
+      <!-- ========================= -->
+
+      <div class="content-section" id="transmissions">
+
+        <!-- =========================== -->
+        <!-- FORMULARIO DE CONFIGURACIÓN -->
+        <!-- =========================== -->
+        <div class="admin-card" style="margin-bottom: 35px;">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Gestión de Transmisiones</h3>
+          </div>
+
+          <form action="{{ url_for('ws_admin.guardar_transmision') }}" method="POST">
+
+            <div class="form-group">
+              <label class="form-label">Seleccionar Partido</label>
+              <select name="partido_id" class="form-control" required>
+                {% for p in partidos %}
+                <option value="{{ p.id }}">
+                  {{ p.equipo_local }} vs {{ p.equipo_visitante }}
+                  {% if p.fecha_hora %}
+                  - {{ p.fecha_hora.strftime('%d/%m/%Y %H:%M') }}
+                  {% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="form-grid">
+
+              <div class="form-group">
+                <label class="form-label">Plataforma</label>
+                <select name="plataforma" class="form-control">
+                  <option value="YouTube">YouTube</option>
+                  <option value="Facebook">Facebook Live</option>
+                  <option value="Twitch">Twitch</option>
+                  <option value="Personalizada">URL Personalizada</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">URL de Transmisión</label>
+                <input name="url_publica" type="url" class="form-control" placeholder="https://youtube.com/embed/..."
+                  required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Estado de la Transmisión</label>
+                <select name="estado_transmision" class="form-control">
+                  <option value="programada">Programada</option>
+                  <option value="en_vivo">En vivo</option>
+                  <option value="finalizada">Finalizada</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Cámara / Dispositivo</label>
+                <input type="text" class="form-control" placeholder="Ej: Celular Samsung S21">
+              </div>
+
+            </div>
+
+            <button class="btn-admin" type="submit">
+              <i class="bi bi-save me-2"></i>
+              Guardar Configuración
+            </button>
+
+          </form>
+        </div>
+
+
+        <!-- =========================== -->
+        <!-- LISTA DE TRANSMISIONES ACTIVAS -->
+        <!-- =========================== -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Transmisiones Activas</h3>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Partido</th>
+                <th>Plataforma</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for tr in transmisiones_activas %}
+              <tr>
+                <td>{{ tr.equipo_local }} vs {{ tr.equipo_visitante }}</td>
+                <td>{{ tr.plataforma }}</td>
+                <td>
+                  {% if tr.estado == 'en_vivo' %}
+                  <span class="badge bg-danger">EN VIVO</span>
+                  {% elif tr.estado == 'programada' %}
+                  <span class="badge bg-warning">Programada</span>
+                  {% else %}
+                  <span class="badge bg-success">{{ tr.estado }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <a class="btn-admin btn-sm btn-success" href="{{ tr.url_publica }}" target="_blank">
+                      Ver
+                    </a>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="4" class="text-center text-muted">
+                  No hay transmisiones registradas.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+
+
+      <!-- MATCHES SECTION -->
+      <div class="content-section" id="matches">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Crear Partido</h3>
+          </div>
+
+          <form action="{{ url_for('ws_admin.crear_partido') }}" method="POST">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Torneo</label>
+                <select name="torneo_id" class="form-control" required>
+                  {% for t in torneos %}
+                  <option value="{{ t.id }}">{{ t.nombre }} ({{ t.temporada }}) - {{ t.division }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Equipo Local</label>
+                <select name="equipo_local_id" class="form-control" required>
+                  {% for e in equipos %}
+                  <option value="{{ e.id }}">{{ e.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Equipo Visitante</label>
+                <select name="equipo_visitante_id" class="form-control" required>
+                  {% for e in equipos %}
+                  <option value="{{ e.id }}">{{ e.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fecha y Hora</label>
+                <input name="fecha_hora" type="datetime-local" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cancha</label>
+                <select name="cancha_id" class="form-control" required>
+                  {% for c in canchas %}
+                  <option value="{{ c.id }}">{{ c.nombre }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Estado</label>
+                <select name="estado" class="form-control">
+                  <option value="programado">Programado</option>
+                  <option value="en_juego">En Juego</option>
+                  <option value="finalizado">Finalizado</option>
+                  <option value="suspendido">Suspendido</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn-admin" type="submit">
+              <i class="bi bi-plus-circle me-2"></i>
+              Crear Partido
+            </button>
+          </form>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Calendario de Partidos</h3>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha/Hora</th>
+                <th>Local</th>
+                <th>Visitante</th>
+                <th>Cancha</th>
+                <th>Estado</th>
+                <th>Resultado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in partidos %}
+              <tr>
+                <td>#{{ p.id }}</td>
+                <td>
+                  {% if p.fecha_hora %}
+                  {{ p.fecha_hora.strftime('%d/%m/%Y %H:%M') }}
+                  {% endif %}
+                </td>
+                <td><strong>{{ p.equipo_local }}</strong></td>
+                <td><strong>{{ p.equipo_visitante }}</strong></td>
+                <td>{{ p.cancha }}</td>
+                <td>
+                  {% if p.estado == 'programado' %}
+                  <span class="badge bg-warning">Programado</span>
+                  {% elif p.estado == 'en_juego' %}
+                  <span class="badge bg-danger">En juego</span>
+                  {% elif p.estado == 'finalizado' %}
+                  <span class="badge bg-success">Finalizado</span>
+                  {% else %}
+                  <span class="badge bg-info">{{ p.estado }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if p.estado == 'finalizado' %}
+                  {{ p.goles_local }} - {{ p.goles_visitante }}
+                  {% else %}
+                  - vs -
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <!-- Aquí luego puedes agregar editar/eliminar -->
+                    <a class="btn-admin btn-sm btn-success" href="#matches">Editar</a>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="8" class="text-center text-muted">
+                  No hay partidos registrados.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+      <!-- PUBLICATIONS SECTION (por ahora demo, sin BD) -->
+      <div class="content-section" id="publications">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Nueva Publicación</h3>
+          </div>
+
+          <form action="#" method="POST">
+            <div class="form-group">
+              <label class="form-label">Título de la Noticia</label>
+              <input type="text" class="form-control" placeholder="Ej: Deportivo Municipal gana el clásico">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Categoría</label>
+              <select class="form-control">
+                <option>Resultado</option>
+                <option>Clasificaciones</option>
+                <option>Mundial 2026</option>
+                <option>Infraestructura</option>
+                <option>Entrevista</option>
+                <option>Análisis</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Contenido</label>
+              <textarea class="form-control" rows="8" placeholder="Escribe el contenido de la noticia..."></textarea>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Imagen Destacada</label>
+                <input type="file" class="form-control" accept="image/*">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Estado</label>
+                <select class="form-control">
+                  <option>Borrador</option>
+                  <option>Publicado</option>
+                  <option>Programado</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn-admin" type="submit">
+              <i class="bi bi-send me-2"></i>
+              Publicar Noticia
+            </button>
+          </form>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Publicaciones Recientes</h3>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Imagen</th>
+                <th>Título</th>
+                <th>Categoría</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div
+                    style="width: 60px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 4px;">
+                  </div>
+                </td>
+                <td><strong>Sporting Cristal le ganó a Atlético Grau</strong></td>
+                <td>Resultado</td>
+                <td>20/11/2025 14:30</td>
+                <td><span class="badge bg-success">Publicado</span></td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn-admin btn-sm btn-success" type="button">Editar</button>
+                    <button class="btn-admin btn-sm btn-danger" type="button">Eliminar</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FIELDS SECTION -->
+      <div class="content-section" id="fields">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Gestión de Canchas</h3>
+          </div>
+
+          <form action="{{ url_for('ws_admin.crear_cancha') }}" method="POST">
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Nombre de la Cancha</label>
+                <input name="nombre" type="text" class="form-control" placeholder="Ej: Cancha Principal" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Ubicación</label>
+                <input name="ubicacion" type="text" class="form-control" placeholder="Dirección completa">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Capacidad</label>
+                <input name="capacidad" type="number" class="form-control" placeholder="Ej: 500">
+              </div>
+            </div>
+
+            <button class="btn-admin" type="submit">
+              <i class="bi bi-save me-2"></i>
+              Guardar Cancha
+            </button>
+          </form>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Canchas Registradas</h3>
+          </div>
+
+          <div class="row">
+            {% for c in canchas %}
+            <div class="col-md-4 mb-3">
+              <div class="stat-card">
+                <div class="stat-card-icon" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);">
+                  <i class="bi bi-geo-alt-fill" style="color: white;"></i>
+                </div>
+                <h4 style="font-weight: 700; margin-bottom: 0.5rem;">{{ c.nombre }}</h4>
+                <p style="color: #666; margin-bottom: 0.5rem;">Capacidad: {{ c.capacidad or '-' }}</p>
+                <p style="color: #666; margin-bottom: 1rem;">{{ c.ubicacion or 'Sin ubicación' }}</p>
+                <div class="btn-group mt-3" style="width: 100%;">
+                  <!-- solo eliminar por ahora -->
+                  <form action="{{ url_for('ws_admin.eliminar_cancha', cancha_id=c.id) }}" method="POST"
+                    style="width: 100%;" onsubmit="return confirm('¿Eliminar cancha {{ c.nombre }}?');">
+                    <button class="btn-admin btn-sm btn-danger" style="flex: 1;" type="submit">Eliminar</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center text-muted">
+              No hay canchas registradas.
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- FORMATIONS SECTION (visual, sin BD aún) -->
+      <div class="content-section" id="formations">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Gestión de Formaciones</h3>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Seleccionar Equipo</label>
+              <select class="form-control">
+                {% for e in equipos %}
+                <option value="{{ e.id }}">{{ e.nombre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Formación Táctica</label>
+              <select class="form-control">
+                <option>4-4-2</option>
+                <option>4-3-3</option>
+                <option>3-5-2</option>
+                <option>4-2-3-1</option>
+                <option>5-3-2</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Campo visual tal como lo tenías -->
+          <div
+            style="background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%); border-radius: 12px; padding: 2rem; position: relative; height: 600px; margin: 2rem 0;">
+            <div
+              style="position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.3);">
+            </div>
+            <div
+              style="position: absolute; top: 0; left: 50%; width: 2px; height: 100%; background: rgba(255,255,255,0.3);">
+            </div>
+            <div
+              style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; height: 150px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;">
+            </div>
+            <h4 style="color: white; text-align: center; margin-bottom: 2rem;">Arrastra jugadores para posicionarlos
+            </h4>
+            <div
+              style="position: absolute; bottom: 5%; left: 50%; transform: translateX(-50%); background: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; cursor: move; box-shadow: 0 4px 8px rgba(0,0,0,0.3);">
+              <span style="font-size: 0.75rem;">POR</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Lista de Jugadores (Arrastrar al campo)</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.5rem;">
+              <div
+                style="background: #f8f8f8; padding: 0.75rem; border-radius: 8px; cursor: move; border: 2px dashed #ccc;">
+                <strong>#1</strong> Carlos Pérez (POR)
+              </div>
+              <div
+                style="background: #f8f8f8; padding: 0.75rem; border-radius: 8px; cursor: move; border: 2px dashed #ccc;">
+                <strong>#2</strong> Juan García (DEF)
+              </div>
+              <div
+                style="background: #f8f8f8; padding: 0.75rem; border-radius: 8px; cursor: move; border: 2px dashed #ccc;">
+                <strong>#10</strong> Luis Torres (MED)
+              </div>
+              <div
+                style="background: #f8f8f8; padding: 0.75rem; border-radius: 8px; cursor: move; border: 2px dashed #ccc;">
+                <strong>#9</strong> Miguel Flores (DEL)
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-admin" type="button">
+            <i class="bi bi-save me-2"></i>
+            Guardar Formación
+          </button>
+        </div>
+      </div>
+
+      <!-- SETTINGS SECTION -->
+      <div class="content-section" id="settings">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h3 class="admin-card-title">Configuración General</h3>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nombre del Portal</label>
+            <input type="text" class="form-control" value="Portal Deportivo Municipal">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Logo del Portal</label>
+            <input type="file" class="form-control" accept="image/*">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email de Contacto</label>
+            <input type="email" class="form-control" value="contacto@deportemunicipal.com">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Redes Sociales</label>
+            <div class="form-grid">
+              <input type="url" class="form-control" placeholder="Facebook URL">
+              <input type="url" class="form-control" placeholder="Instagram URL">
+              <input type="url" class="form-control" placeholder="YouTube URL">
+              <input type="url" class="form-control" placeholder="Twitter/X URL">
+            </div>
+          </div>
+
+          <button class="btn-admin" type="button">
+            <i class="bi bi-save me-2"></i>
+            Guardar Configuración
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ======================= -->
+  <!--  MODAL CAMPEÓN DEL TORNEO -->
+  <!-- ======================= -->
+  <div id="championModal" class="champion-modal">
+    <div class="champion-content">
+
+      <div class="champion-header">
+        <span class="trophy-icon">🏆</span>
+        <h2 class="champion-title">¡Tenemos Campeón!</h2>
+      </div>
+
+      <div class="champion-body">
+        <h3 class="champion-name" id="championName">Equipo Campeón</h3>
+
+        <p class="champion-subtitle">🏅 Felicitaciones por ganar el torneo 🎉</p>
+
+        <button class="champion-close-btn" onclick="closeChampionModal()">
+          Cerrar ✨
+        </button>
+      </div>
+    </div>
+  </div>
+  <script>
+    function declareChampionBracket() {
+      const finalCard = document.querySelector('[data-match="final"]');
+      const selected = finalCard.querySelector(".team-row.selected-row");
+
+      if (!selected) {
+        alert("Selecciona el ganador de la FINAL.");
+        return;
+      }
+
+      const nombre = selected.querySelector(".team-name").textContent;
+
+      // Setear el nombre en el modal
+      document.getElementById("championName").textContent = nombre;
+
+      // Mostrar modal
+      document.getElementById("championModal").style.display = "flex";
+
+      // Ejecutar confeti por 6 segundos
+      let duration = 6000;
+      let animationEnd = Date.now() + duration;
+
+      (function frame() {
+        confetti({
+          particleCount: 7,
+          spread: 80,
+          origin: { x: Math.random(), y: Math.random() - 0.2 }
+        });
+
+        if (Date.now() < animationEnd) {
+          requestAnimationFrame(frame);
+        }
+      })();
+    }
+
+    function closeChampionModal() {
+      document.getElementById("championModal").style.display = "none";
+    }
+  </script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- JS propio -->
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+
+</html>
