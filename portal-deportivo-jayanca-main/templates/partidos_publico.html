@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Deportivo Municipal - Jayanca</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/partido_publico.css') }}">
+
+    <!-- Estilos extra solo para logos y mini logos -->
+    <style>
+      
+    </style>
+</head>
+<body>
+
+<!-- ========== TOP SCORES BAR (usa primeros partidos de la BD) ========== -->
+<div class="scores-bar">
+    <div class="container">
+        <div class="scores-container">
+            {% if partidos %}
+                {% for p in partidos[:5] %}
+                    <div class="score-item">
+                        {% if p.estado_transmision == 'en_vivo' %}
+                            <span class="live-indicator-small">EN VIVO</span>
+                        {% elif p.estado == 'finalizado' %}
+                            <span class="text-muted">Final</span>
+                        {% else %}
+                            <span class="text-muted">{{ p.fecha_hora }}</span>
+                        {% endif %}
+
+                        <!-- Equipo local con mini logo + logs -->
+                        <span class="score-team">
+                            <span class="score-mini-logo">
+                                {% if p.logo_local_url %}
+                                    {% set logo_local = p.logo_local_url %}
+                                    {% if logo_local.startswith('http') %}
+                                        <img src="{{ logo_local }}" alt="{{ p.equipo_local }}"
+                                             onload="console.log('TOPBAR logo LOCAL OK', this.src)"
+                                             onerror="console.error('TOPBAR ERROR logo LOCAL', this.src)">
+                                    {% elif logo_local.startswith('/') %}
+                                        <img src="{{ logo_local }}" alt="{{ p.equipo_local }}"
+                                             onload="console.log('TOPBAR logo LOCAL OK', this.src)"
+                                             onerror="console.error('TOPBAR ERROR logo LOCAL', this.src)">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='img/' ~ logo_local) }}" alt="{{ p.equipo_local }}"
+                                             onload="console.log('TOPBAR logo LOCAL OK', this.src)"
+                                             onerror="console.error('TOPBAR ERROR logo LOCAL', this.src)">
+                                    {% endif %}
+                                {% else %}
+                                    <span>{{ p.equipo_local[:2]|upper }}</span>
+                                    <script>
+                                        console.warn('TOPBAR sin logo_local_url para partido ID {{ p.id }} ({{ p.equipo_local }})');
+                                    </script>
+                                {% endif %}
+                            </span>
+                            {{ p.equipo_local[:3]|upper }}
+                        </span>
+
+                        {% if p.estado in ['en_juego','finalizado'] %}
+                            <span class="score-number">{{ p.goles_local }}</span>
+                            <span class="text-muted">-</span>
+                            <span class="score-number">{{ p.goles_visitante }}</span>
+                        {% else %}
+                            <span class="text-muted">vs</span>
+                        {% endif %}
+
+                        <!-- Equipo visitante con mini logo + logs -->
+                        <span class="score-team">
+                            <span class="score-mini-logo">
+                                {% if p.logo_visitante_url %}
+                                    {% set logo_vis = p.logo_visitante_url %}
+                                    {% if logo_vis.startswith('http') %}
+                                        <img src="{{ logo_vis }}" alt="{{ p.equipo_visitante }}"
+                                             onload="console.log('TOPBAR logo VISITANTE OK', this.src)"
+                                             onerror="console.error('TOPBAR ERROR logo VISITANTE', this.src)">
+                                    {% elif logo_vis.startswith('/') %}
+                                        <img src="{{ logo_vis }}" alt="{{ p.equipo_visitante }}"
+                                             onload="console.log('TOPBAR logo VISITANTE OK', this.src)"
+                                             onerror="console.error('TOPBAR ERROR logo VISITANTE', this.src)">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='img/' ~ logo_vis) }}" alt="{{ p.equipo_visitante }}"
+                                             onload="console.log('TOPBAR logo VISITANTE OK', this.src)"
+                                             onerror="console.error('TOPBAR ERROR logo VISITANTE', this.src)">
+                                    {% endif %}
+                                {% else %}
+                                    <span>{{ p.equipo_visitante[:2]|upper }}</span>
+                                    <script>
+                                        console.warn('TOPBAR sin logo_visitante_url para partido ID {{ p.id }} ({{ p.equipo_visitante }})');
+                                    </script>
+                                {% endif %}
+                            </span>
+                            {{ p.equipo_visitante[:3]|upper }}
+                        </span>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="score-item">
+                    <span class="text-muted">No hay partidos registrados aún.</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar navbar-expand-lg navbar-main">
+    <div class="container-fluid">
+        <a class="navbar-brand-espn" href="{{ url_for('ws_partidos.pantalla_publica_partidos') }}">
+            PDM
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" style="border-color: rgba(255,255,255,0.3);">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav navbar-nav-main">
+                <li class="nav-item">
+                    <a class="nav-link-main active" href="{{ url_for('ws_partidos.pantalla_publica_partidos') }}">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Fútbol</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Torneos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Clasificaciones</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Transmisiones</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Canchas</a>
+                </li>
+            </ul>
+
+            <div class="navbar-tools ms-auto">
+                <button class="btn-search"><i class="bi bi-search"></i></button>
+                <button class="btn-user"><i class="bi bi-person-circle"></i></button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ========== HERO BANNER ========== -->
+<div class="hero-banner">
+    <div class="hero-content">
+        <div class="container">
+            <span class="hero-badge">
+                <i class="bi bi-circle-fill" style="font-size: 0.6rem;"></i>
+                Municipalidad Distrital de Jayanca
+            </span>
+            <h1 class="hero-title">CAMPEONATOS MUNICIPALES<br>FÚTBOL DE PRIMERA Y SEGUNDA</h1>
+            <p class="hero-subtitle">
+                Portal oficial de transmisiones y calendario deportivo de la Municipalidad Distrital de Jayanca.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="container my-4">
+    <div class="row">
+        <!-- ========== MAIN CONTENT ========== -->
+        <div class="col-lg-8">
+            
+            <!-- NEWS SECTION (por ahora estática; luego la admin BD) -->
+            <div class="news-section">
+                <div class="section-header">
+                    <h2 class="section-title">Noticias Destacadas</h2>
+                    <a href="#" class="view-all-link">Ver Todo <i class="bi bi-chevron-right"></i></a>
+                </div>
+
+                <div class="row">
+                    <!-- Featured News -->
+                    <div class="col-12 mb-4">
+                        <div class="featured-news">
+                            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #1e5799 0%, #207cca 50%, #2989d8 100%);"></div>
+                            <div class="featured-news-overlay">
+                                <span class="news-category">Resultado</span>
+                                <h3 class="featured-news-title">
+                                    Equipo municipal se corona campeón del torneo distrital de Jayanca
+                                </h3>
+                                <div class="news-meta">
+                                    <i class="bi bi-clock me-1"></i>Hace 2 horas
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- News Grid -->
+                    <div class="col-md-6 mb-4">
+                        <div class="news-card">
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #00c851 0%, #007e33 100%);"></div>
+                            <div class="news-card-body">
+                                <span class="news-category">Clasificaciones</span>
+                                <h4 class="news-card-title">Así va la tabla de posiciones del campeonato distrital</h4>
+                                <p class="news-card-excerpt">
+                                    La lucha por el primer lugar sigue ajustada entre los equipos de los diferentes sectores de Jayanca.
+                                </p>
+                                <div class="news-meta">
+                                    <i class="bi bi-clock me-1"></i>Hace 4 horas
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="news-card">
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #ff3b3b 0%, #cc0000 100%);"></div>
+                            <div class="news-card-body">
+                                <span class="news-category">Infraestructura</span>
+                                <h4 class="news-card-title">Mejoras en las canchas deportivas municipales</h4>
+                                <p class="news-card-excerpt">
+                                    La municipalidad viene realizando trabajos de mantenimiento para brindar mejores espacios a los deportistas.
+                                </p>
+                                <div class="news-meta">
+                                    <i class="bi bi-clock me-1"></i>Hace 6 horas
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="news-card">
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);"></div>
+                            <div class="news-card-body">
+                                <span class="news-category">Convocatoria</span>
+                                <h4 class="news-card-title">Inscripciones abiertas para el próximo torneo barrial</h4>
+                                <p class="news-card-excerpt">
+                                    Los equipos interesados pueden acercarse a la Oficina de Deportes de la municipalidad.
+                                </p>
+                                <div class="news-meta">
+                                    <i class="bi bi-clock me-1"></i>Hace 8 horas
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4">
+                        <div class="news-card">
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #0066cc 0%, #003d7a 100%);"></div>
+                            <div class="news-card-body">
+                                <span class="news-category">Entrevista</span>
+                                <h4 class="news-card-title">Capitán del campeón distrital comenta sobre la final</h4>
+                                <p class="news-card-excerpt">
+                                    Destaca el apoyo de la municipalidad y de los vecinos de Jayanca durante el campeonato.
+                                </p>
+                                <div class="news-meta">
+                                    <i class="bi bi-clock me-1"></i>Hace 12 horas
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MATCHES SECTION -->
+            <div class="matches-section mt-5">
+                <div class="section-header">
+                    <h2 class="section-title">Partidos</h2>
+                </div>
+
+                <!-- Filtros conectados con la ruta /partidos -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <div class="filter-tabs">
+                        <a class="filter-tab {% if filtro_tiempo == 'todos' %}active{% endif %}"
+                           href="{{ url_for('ws_partidos.pantalla_publica_partidos', tiempo='todos', division_id=division_id) }}">
+                            Todos
+                        </a>
+                        <a class="filter-tab {% if filtro_tiempo == 'proximos' %}active{% endif %}"
+                           href="{{ url_for('ws_partidos.pantalla_publica_partidos', tiempo='proximos', division_id=division_id) }}">
+                            Próximos
+                        </a>
+                        <a class="filter-tab {% if filtro_tiempo == 'anteriores' %}active{% endif %}"
+                           href="{{ url_for('ws_partidos.pantalla_publica_partidos', tiempo='anteriores', division_id=division_id) }}">
+                            Anteriores
+                        </a>
+                    </div>
+
+                    <!-- Filtro por división usando la BD -->
+                    <form method="get" class="d-flex align-items-center gap-2">
+                        <input type="hidden" name="tiempo" value="{{ filtro_tiempo }}">
+                        <label for="division_id" class="form-label mb-0 me-1">División:</label>
+                        <select class="form-select form-select-sm" name="division_id" id="division_id"
+                                onchange="this.form.submit()">
+                            <option value="">Todas</option>
+                            {% for d in divisiones %}
+                                <option value="{{ d.id }}"
+                                        {% if division_id and division_id|int == d.id %}selected{% endif %}>
+                                    {{ d.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+
+                <!-- Match Cards desde la BD -->
+                {% if partidos %}
+                    {% for p in partidos %}
+                        <div class="match-card-horizontal">
+                            <div class="match-info-left">
+                                <div class="match-league">
+                                    {{ p.torneo }} — {{ p.division }}{% if p.grupo %} | Grupo {{ p.grupo }}{% endif %}
+                                    {% if p.jornada %} | Fecha {{ p.jornada }}{% endif %}
+                                </div>
+                                <div class="match-teams">
+                                    <!-- Local -->
+                                    <div class="team-row">
+                                        <div class="team-logo local">
+                                            {% if p.logo_local_url %}
+                                                {% set logo_local = p.logo_local_url %}
+                                                {% if logo_local.startswith('http') %}
+                                                    <img src="{{ logo_local }}" alt="{{ p.equipo_local }}"
+                                                         onload="console.log('CARD logo LOCAL OK', this.src)"
+                                                         onerror="console.error('CARD ERROR logo LOCAL', this.src)">
+                                                {% elif logo_local.startswith('/') %}
+                                                    <img src="{{ logo_local }}" alt="{{ p.equipo_local }}"
+                                                         onload="console.log('CARD logo LOCAL OK', this.src)"
+                                                         onerror="console.error('CARD ERROR logo LOCAL', this.src)">
+                                                {% else %}
+                                                    <img src="{{ url_for('static', filename='img/' ~ logo_local) }}" alt="{{ p.equipo_local }}"
+                                                         onload="console.log('CARD logo LOCAL OK', this.src)"
+                                                         onerror="console.error('CARD ERROR logo LOCAL', this.src)">
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="team-logo-initials">
+                                                    {{ p.equipo_local[:2]|upper }}
+                                                </div>
+                                                <script>
+                                                    console.warn('CARD sin logo_local_url para partido ID {{ p.id }} ({{ p.equipo_local }})');
+                                                </script>
+                                            {% endif %}
+                                        </div>
+                                        <span class="team-name-match">{{ p.equipo_local }}</span>
+                                    </div>
+                                    <!-- Visitante -->
+                                    <div class="team-row">
+                                        <div class="team-logo visitante">
+                                            {% if p.logo_visitante_url %}
+                                                {% set logo_vis = p.logo_visitante_url %}
+                                                {% if logo_vis.startswith('http') %}
+                                                    <img src="{{ logo_vis }}" alt="{{ p.equipo_visitante }}"
+                                                         onload="console.log('CARD logo VISITANTE OK', this.src)"
+                                                         onerror="console.error('CARD ERROR logo VISITANTE', this.src)">
+                                                {% elif logo_vis.startswith('/') %}
+                                                    <img src="{{ logo_vis }}" alt="{{ p.equipo_visitante }}"
+                                                         onload="console.log('CARD logo VISITANTE OK', this.src)"
+                                                         onerror="console.error('CARD ERROR logo VISITANTE', this.src)">
+                                                {% else %}
+                                                    <img src="{{ url_for('static', filename='img/' ~ logo_vis) }}" alt="{{ p.equipo_visitante }}"
+                                                         onload="console.log('CARD logo VISITANTE OK', this.src)"
+                                                         onerror="console.error('CARD ERROR logo VISITANTE', this.src)">
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="team-logo-initials">
+                                                    {{ p.equipo_visitante[:2]|upper }}
+                                                </div>
+                                                <script>
+                                                    console.warn('CARD sin logo_visitante_url para partido ID {{ p.id }} ({{ p.equipo_visitante }})');
+                                                </script>
+                                            {% endif %}
+                                        </div>
+                                        <span class="team-name-match">{{ p.equipo_visitante }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="match-info-center">
+                                {% if p.estado_transmision == 'en_vivo' %}
+                                    <span class="live-badge-match">
+                                        <i class="bi bi-circle-fill" style="font-size: 0.5rem;"></i>
+                                        EN VIVO
+                                    </span>
+                                    {% if p.goles_local is not none and p.goles_visitante is not none %}
+                                        <div class="match-score mt-2">
+                                            {{ p.goles_local }} - {{ p.goles_visitante }}
+                                        </div>
+                                    {% endif %}
+                                {% elif p.estado in ['en_juego','finalizado'] %}
+                                    <div class="match-status">
+                                        {{ p.estado|replace('_',' ')|upper }}
+                                    </div>
+                                    <div class="match-score">
+                                        {{ p.goles_local }} - {{ p.goles_visitante }}
+                                    </div>
+                                {% else %}
+                                    <div class="match-status">
+                                        {{ p.fecha_hora }}
+                                    </div>
+                                    <div class="match-time">VS</div>
+                                {% endif %}
+                                <div class="match-status" style="margin-top: 0.5rem;">
+                                    <i class="bi bi-geo-alt-fill me-1"></i>{{ p.cancha }}
+                                </div>
+                            </div>
+
+                            <div class="match-actions">
+                                {% if p.estado_transmision == 'en_vivo' or p.url_publica %}
+                                    <a href="{{ url_for('ws_partidos.ver_transmision', partido_id=p.id) }}" 
+                                       class="btn-watch-match">
+                                        <i class="bi bi-play-circle-fill"></i>
+                                        {% if p.estado_transmision == 'en_vivo' %}Ver en Vivo{% else %}Ver Partido{% endif %}
+                                    </a>
+                                {% else %}
+                                    <button class="btn-watch-match disabled" disabled>
+                                        <i class="bi bi-camera-video-off"></i>
+                                        Sin transmisión
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No hay partidos registrados para los filtros seleccionados.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ========== SIDEBAR ========== -->
+        <div class="col-lg-4">
+            
+            <!-- Standings -->
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Tabla de Posiciones</h3>
+                <div class="standings-row">
+                    <span class="standings-position">1</span>
+                    <span class="standings-team">Deportivo Municipal Jayanca</span>
+                    <span class="standings-points">45</span>
+                </div>
+                <div class="standings-row">
+                    <span class="standings-position">2</span>
+                    <span class="standings-team">Atlético Ciudadano</span>
+                    <span class="standings-points">42</span>
+                </div>
+                <div class="standings-row">
+                    <span class="standings-position">3</span>
+                    <span class="standings-team">Juventud Deportiva</span>
+                    <span class="standings-points">40</span>
+                </div>
+                <div class="standings-row">
+                    <span class="standings-position">4</span>
+                    <span class="standings-team">Unión Sportiva</span>
+                    <span class="standings-points">38</span>
+                </div>
+                <div class="standings-row">
+                    <span class="standings-position">5</span>
+                    <span class="standings-team">FC Esperanza</span>
+                    <span class="standings-points">35</span>
+                </div>
+                <a href="#" class="view-all-link d-block text-center mt-3">Ver tabla completa</a>
+            </div>
+
+            <!-- Top Scorers -->
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Goleadores</h3>
+                <div class="standings-row">
+                    <span class="standings-position">1</span>
+                    <span class="standings-team">Carlos Ramírez</span>
+                    <span class="standings-points">18</span>
+                </div>
+                <div class="standings-row">
+                    <span class="standings-position">2</span>
+                    <span class="standings-team">José Mendoza</span>
+                    <span class="standings-points">15</span>
+                </div>
+                <div class="standings-row">
+                    <span class="standings-position">3</span>
+                    <span class="standings-team">Miguel Ángel Torres</span>
+                    <span class="standings-points">14</span>
+                </div>
+                <div class="standings-row">
+                    <span class="standings-position">4</span>
+                    <span class="standings-team">Ricardo Flores</span>
+                    <span class="standings-points">12</span>
+                </div>
+                <div class="standings-row">
+                    <span class="standings-position">5</span>
+                    <span class="standings-team">Andrés Vega</span>
+                    <span class="standings-points">11</span>
+                </div>
+            </div>
+
+            <!-- Trending News -->
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Tendencias</h3>
+                <div class="news-card mb-3">
+                    <div style="width: 100%; height: 150px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    <div class="news-card-body">
+                        <span class="news-category">Opinión</span>
+                        <h5 class="news-card-title" style="font-size: 0.95rem;">
+                            ¿Cómo se definirán los campeonatos distritales en Jayanca?
+                        </h5>
+                        <div class="news-meta">
+                            <i class="bi bi-clock me-1"></i>Hace 1 hora
+                        </div>
+                    </div>
+                </div>
+                <div class="news-card mb-3">
+                    <div style="width: 100%; height: 150px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                    <div class="news-card-body">
+                        <span class="news-category">Análisis</span>
+                        <h5 class="news-card-title" style="font-size: 0.95rem;">
+                            El impacto del deporte en la juventud de Jayanca
+                        </h5>
+                        <div class="news-meta">
+                            <i class="bi bi-clock me-1"></i>Hace 3 horas
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">Accesos Rápidos</h3>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-watch-match">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Reservar Cancha
+                    </button>
+                    <button class="btn btn-watch-match" style="background: #0066cc;">
+                        <i class="bi bi-trophy me-2"></i>
+                        Inscribir Equipo
+                    </button>
+                    <button class="btn btn-watch-match" style="background: #00c851;">
+                        <i class="bi bi-file-earmark-text me-2"></i>
+                        Reglamento
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer-main">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 footer-section">
+                <h5 class="footer-title">Portal Deportivo Municipal</h5>
+                <p style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+                    Promoviendo el deporte y la comunidad a través de la tecnología.
+                    Municipalidad Distrital de Jayanca.
+                </p>
+                <div class="social-icons">
+                    <a href="#" class="social-icon"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="social-icon"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="bi bi-youtube"></i></a>
+                    <a href="#" class="social-icon"><i class="bi bi-twitter-x"></i></a>
+                </div>
+            </div>
+
+            <div class="col-md-3 footer-section">
+                <h5 class="footer-title">Torneos</h5>
+                <ul class="footer-links">
+                    <li><a href="#">Primera División</a></li>
+                    <li><a href="#">Segunda División</a></li>
+                    <li><a href="#">Fútbol Femenino</a></li>
+                    <li><a href="#">Categorías Menores</a></li>
+                    <li><a href="#">Fixture Completo</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-3 footer-section">
+                <h5 class="footer-title">Servicios</h5>
+                <ul class="footer-links">
+                    <li><a href="#">Reserva de Canchas</a></li>
+                    <li><a href="#">Transmisiones en Vivo</a></li>
+                    <li><a href="#">Inscripción de Equipos</a></li>
+                    <li><a href="#">Clasificaciones</a></li>
+                    <li><a href="#">Estadísticas</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-3 footer-section">
+                <h5 class="footer-title">Información</h5>
+                <ul class="footer-links">
+                    <li><a href="#">Acerca de Nosotros</a></li>
+                    <li><a href="#">Contacto</a></li>
+                    <li><a href="#">Reglamentos</a></li>
+                    <li><a href="#">Preguntas Frecuentes</a></li>
+                    <li><a href="#">Política de Privacidad</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <hr style="border-color: rgba(255,255,255,0.2); margin: 2rem 0 1rem;">
+        
+        <div class="row">
+            <div class="col-md-6 text-center text-md-start">
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0;">
+                    &copy; 2025 Municipalidad Distrital de Jayanca. Todos los derechos reservados.
+                </p>
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0;">
+                    Desarrollado con <i class="bi bi-heart-fill text-danger"></i> para la comunidad
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ============================
+    //  TU SCRIPT ORIGINAL (NO CAMBIADO)
+    // ============================
+
+    // Filter tabs: solo estilo (la navegación real la maneja Flask)
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Smooth scroll para futuros links internos
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+
+    // Animación al hacer scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.news-card, .match-card-horizontal').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        observer.observe(card);
+    });
+
+
+    // =======================================================
+    //  🔍 SECCIÓN AGREGADA: DEBUG DE LOGOS EN ESTA PÁGINA
+    // =======================================================
+
+    window.addEventListener("load", () => {
+        // En partidos_publico los logos están en:
+        //  - barra superior: .score-mini-logo img
+        //  - cards: .team-logo img
+        const logos = document.querySelectorAll(".score-mini-logo img, .team-logo img");
+
+        console.log("🔍 Buscando logos (.score-mini-logo img, .team-logo img)...");
+        if (!logos.length) {
+            console.warn("⚠️ Ningún logo encontrado en el DOM.");
+            return;
+        }
+
+        logos.forEach((img, index) => {
+            const rawSrc = img.getAttribute("src");
+            console.log(`[LOGO #${index}] src_raw=${rawSrc} src_resuelto=${img.src}`);
+
+            img.addEventListener("load", () => {
+                console.log(`✅ Logo #${index} cargado correctamente: ${img.src}`);
+            });
+
+            img.addEventListener("error", () => {
+                console.error(`❌ Error cargando LOGO #${index}: ${img.src}`);
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
+
