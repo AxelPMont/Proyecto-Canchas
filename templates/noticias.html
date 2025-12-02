@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todas las Noticias - Portal Deportivo Municipal Jayanca</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-red: #d50a0a;
+            --secondary-red: #8b0000;
+            --dark-bg: #1a1a1a;
+            --darker-bg: #0a0a0a;
+            --light-gray: #f5f5f5;
+            --medium-gray: #cccccc;
+            --text-gray: #666666;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--light-gray);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+        }
+
+        /* ========== NAVBAR ========== */
+        .navbar-main {
+            background: var(--darker-bg);
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .navbar-brand-espn {
+            background: var(--primary-red);
+            padding: 0.75rem 1.5rem;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: white !important;
+            letter-spacing: -1px;
+            transition: all 0.2s ease;
+        }
+
+        .navbar-brand-espn:hover {
+            background: var(--secondary-red);
+        }
+
+        .navbar-nav-main {
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-link-main {
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 1rem 1.25rem !important;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-link-main:hover,
+        .nav-link-main.active {
+            background: rgba(255,255,255,0.1);
+            border-bottom: 3px solid var(--primary-red);
+        }
+
+        .navbar-tools {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-search, .btn-user {
+            background: none;
+            border: none;
+            color: #ccc;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .btn-search:hover, .btn-user:hover {
+            color: var(--primary-red);
+        }
+
+        /* ========== PAGE HEADER ========== */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--secondary-red) 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            font-size: 1.05rem;
+            opacity: 0.95;
+        }
+
+        /* ========== MAIN CONTAINER ========== */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* ========== NEWS GRID ========== */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .news-card-wrapper {
+            height: 100%;
+            min-width: 0;
+        }
+
+        .news-card-large {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            height: 100%;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .news-card-large:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+        }
+
+        .news-card-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .news-card-body-large {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .news-category-badge {
+            display: inline-block;
+            background: var(--primary-red);
+            color: white;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            width: fit-content;
+        }
+
+        .news-card-title-large {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #333;
+            line-height: 1.4;
+            flex-grow: 1;
+            min-height: 3.2rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-card-excerpt {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .news-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+        }
+
+        .read-more-link {
+            color: var(--primary-red);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .read-more-link:hover {
+            color: var(--secondary-red);
+        }
+
+        /* ========== PAGINATION ========== */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+
+        .pagination-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .pagination-btn:hover {
+            background: var(--primary-red);
+            color: white;
+            border-color: var(--primary-red);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary-red);
+            color: white;
+            border-color: var(--primary-red);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ========== NO NEWS MESSAGE ========== */
+        .no-news-message {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .no-news-message i {
+            font-size: 3rem;
+            color: var(--medium-gray);
+            margin-bottom: 1rem;
+        }
+
+        .no-news-message h3 {
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-news-message p {
+            color: var(--text-gray);
+            margin-bottom: 1rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-red);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: var(--secondary-red);
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            background: var(--dark-bg);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .news-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .navbar-nav-main {
+                gap: 1rem;
+            }
+
+            .nav-link-main {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-main">
+    <div class="container-fluid">
+        <a class="navbar-brand-espn" href="{{ url_for('ws_partidos.pantalla_publica_partidos') }}">
+            PDM
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" style="border-color: rgba(255,255,255,0.3);">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav navbar-nav-main">
+                <li class="nav-item">
+                    <a class="nav-link-main" href="{{ url_for('ws_partidos.pantalla_publica_partidos') }}">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Fútbol</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Torneos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Clasificaciones</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Transmisiones</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main" href="#">Canchas</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link-main active" href="{{ url_for('ws_partidos.todas_las_noticias') }}">Noticias</a>
+                </li>
+            </ul>
+
+            <div class="navbar-tools ms-auto">
+                <button class="btn-search"><i class="bi bi-search"></i></button>
+                <button class="btn-user"><i class="bi bi-person-circle"></i></button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+    <h1><i class="bi bi-newspaper me-2"></i>Todas las Noticias</h1>
+    <p>Mantente informado sobre los eventos deportivos municipales</p>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-container">
+    {% if publicaciones %}
+        <!-- NEWS GRID -->
+        <div class="news-grid">
+            {% for pub in publicaciones %}
+                <div class="news-card-wrapper">
+                    <a href="{{ url_for('ws_partidos.ver_noticia', noticia_id=pub.id) }}" style="text-decoration: none; color: inherit; display: flex; height: 100%;">
+                        <div class="news-card-large">
+                            {% if pub.imagen_url %}
+                                <img src="{{ pub.imagen_url }}" alt="{{ pub.titulo }}" class="news-card-image">
+                            {% else %}
+                                <div class="news-card-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="bi bi-newspaper"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="news-card-body-large">
+                                <span class="news-category-badge">{{ pub.categoria }}</span>
+                                <h4 class="news-card-title-large">{{ pub.titulo }}</h4>
+                                <p class="news-card-excerpt">{{ pub.contenido }}</p>
+                                
+                                <div class="news-card-footer">
+                                    <span>
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        {% if pub.fecha_pub %}
+                                            {{ pub.fecha_pub.strftime('%d/%m/%Y') }}
+                                        {% else %}
+                                            Reciente
+                                        {% endif %}
+                                    </span>
+                                    <span class="read-more-link">
+                                        Leer más <i class="bi bi-arrow-right ms-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- PAGINATION -->
+        {% if total_paginas > 1 %}
+            <div class="pagination-container">
+                <!-- Botón anterior -->
+                {% if pagina > 1 %}
+                    <a href="{{ url_for('ws_partidos.todas_las_noticias', pagina=pagina-1) }}" class="pagination-btn">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                {% else %}
+                    <button class="pagination-btn" disabled>
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                {% endif %}
+
+                <!-- Números de página -->
+                {% for i in range(1, total_paginas + 1) %}
+                    {% if i == pagina %}
+                        <button class="pagination-btn active">{{ i }}</button>
+                    {% elif i == 1 or i == total_paginas or (i >= pagina - 1 and i <= pagina + 1) %}
+                        <a href="{{ url_for('ws_partidos.todas_las_noticias', pagina=i) }}" class="pagination-btn">{{ i }}</a>
+                    {% elif i == pagina - 2 or i == pagina + 2 %}
+                        <span class="pagination-btn" style="border: none; background: none; color: #999;">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Botón siguiente -->
+                {% if pagina < total_paginas %}
+                    <a href="{{ url_for('ws_partidos.todas_las_noticias', pagina=pagina+1) }}" class="pagination-btn">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                {% else %}
+                    <button class="pagination-btn" disabled>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    {% else %}
+        <!-- NO NEWS MESSAGE -->
+        <div class="no-news-message">
+            <i class="bi bi-inbox"></i>
+            <h3>No hay noticias disponibles</h3>
+            <p>En este momento no hay publicaciones. Vuelve pronto para más actualizaciones.</p>
+            <a href="/partidos" class="back-link">Volver a Partidos</a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <p>&copy; 2025 Portal Deportivo Municipal - Jayanca. Todos los derechos reservados.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

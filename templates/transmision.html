@@ -1,0 +1,2095 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ partido.equipo_local }} vs {{ partido.equipo_visitante }} - En Vivo | Portal Deportivo Municipal</title>
+    
+    <!-- Meta tags para compartir en redes sociales -->
+    <meta name="description" content="Transmisión en vivo del partido {{ partido.equipo_local }} vs {{ partido.equipo_visitante }} - Portal Deportivo Municipal de Jayanca">
+    <meta property="og:title" content="{{ partido.equipo_local }} vs {{ partido.equipo_visitante }} - En Vivo">
+    <meta property="og:description" content="Sigue el partido en vivo desde el Portal Deportivo Municipal">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --municipal-red: #d50a0a;
+            --municipal-dark: #1a1a1a;
+            --municipal-gold: #ffd700;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-dark: #1a1d2e;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --text-light: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* NAVBAR MUNICIPAL */
+        .navbar-municipal {
+            background: linear-gradient(135deg, var(--municipal-red) 0%, var(--municipal-dark) 100%);
+            box-shadow: var(--shadow-lg);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .municipal-brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .municipal-brand:hover {
+            color: var(--municipal-gold);
+            transform: translateY(-2px);
+        }
+
+        .brand-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            list-style: none;
+            margin: 0;
+        }
+
+        .nav-link-item {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .nav-link-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* LIVE STATUS BAR */
+        .live-status-bar {
+            background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+            color: white;
+            padding: 0.75rem 0;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); }
+            50% { box-shadow: 0 4px 20px rgba(220, 38, 38, 0.7); }
+        }
+
+        .live-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* MATCH HEADER */
+        .match-header-section {
+            background: linear-gradient(135deg, #1a1d2e 0%, #2d3748 100%);
+            padding: 2rem 0;
+            color: white;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .match-info-container {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 2rem;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .team-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .team-section.away {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+
+        .team-logo-container {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            transition: var(--transition);
+        }
+
+        .team-logo-container:hover {
+            transform: scale(1.05);
+            border-color: var(--municipal-gold);
+        }
+
+        .team-logo-text {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: white;
+        }
+
+        .team-info {
+            flex: 1;
+        }
+
+        .team-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+            letter-spacing: -0.02em;
+        }
+
+        .team-details {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .score-center {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            min-width: 200px;
+        }
+
+        .score-display-large {
+            font-size: 4rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .score-separator {
+            opacity: 0.5;
+            font-size: 3rem;
+        }
+
+        .match-status {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .match-time-info {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.25rem;
+        }
+
+        /* TOURNAMENT INFO BAR */
+        .tournament-bar {
+            background: white;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tournament-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tournament-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .tournament-item i {
+            color: var(--municipal-red);
+        }
+
+        /* TABS NAVIGATION */
+        .tabs-section {
+            background: white;
+            border-bottom: 2px solid var(--border-color);
+            position: sticky;
+            top: 73px;
+            z-index: 900;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tabs-container {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tab-button:hover {
+            background: var(--bg-secondary);
+            color: var(--municipal-red);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, var(--municipal-red), #c50909);
+            color: white;
+            border-color: var(--municipal-red);
+            box-shadow: 0 4px 12px rgba(213, 10, 10, 0.3);
+        }
+
+        /* MAIN CONTENT */
+        .content-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        /* VIDEO SECTION */
+        .video-section {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        .video-header {
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .video-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .video-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .video-control-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .video-control-btn:hover {
+            background: var(--municipal-red);
+            color: white;
+            border-color: var(--municipal-red);
+            transform: translateY(-2px);
+        }
+
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            aspect-ratio: 16 / 9;
+        }
+
+        .video-wrapper iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .video-placeholder i {
+            font-size: 4rem;
+            opacity: 0.5;
+        }
+
+        /* VIDEO OVERLAY */
+        .video-overlay-scoreboard {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+        }
+
+        .overlay-team {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .overlay-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.8rem;
+            color: white;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .overlay-score {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: white;
+        }
+
+        .overlay-status {
+            padding: 0.4rem 1rem;
+            background: rgba(220, 38, 38, 0.9);
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: white;
+        }
+
+        /* EVENT BANNER */
+        .event-banner-overlay {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%) translateY(40px);
+            z-index: 11;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+        }
+
+        .event-banner-overlay.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .event-banner-content {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(26, 29, 46, 0.95));
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            min-width: 400px;
+            max-width: 600px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            animation: slideInBounce 0.6s ease;
+        }
+
+        @keyframes slideInBounce {
+            0% { transform: scale(0.8); opacity: 0; }
+            60% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .event-icon-large {
+            font-size: 3rem;
+            animation: bounce-icon 0.6s ease;
+        }
+
+        @keyframes bounce-icon {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2) rotate(10deg); }
+        }
+
+        .event-text-container {
+            flex: 1;
+            color: white;
+        }
+
+        .event-main-text {
+            font-size: 1.3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-sub-text {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Event types */
+        .event-banner-content.tipo-gol {
+            background: linear-gradient(135deg, #ffd700 0%, #ff9800 100%);
+            color: #1a1300;
+            border-color: #ffed4e;
+        }
+
+        .event-banner-content.tipo-gol .event-text-container {
+            color: #1a1300;
+        }
+
+        .event-banner-content.tipo-penal {
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            color: white;
+        }
+
+        .event-banner-content.tipo-amarilla {
+            background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%);
+            color: #1a1300;
+            border-color: #ffed4e;
+        }
+
+        .event-banner-content.tipo-amarilla .event-text-container {
+            color: #1a1300;
+        }
+
+        .event-banner-content.tipo-roja {
+            background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+            color: white;
+        }
+
+        /* MUNICIPAL BANNER */
+        .municipal-banner {
+            background: linear-gradient(135deg, var(--municipal-red) 0%, var(--municipal-dark) 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            color: white;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .municipal-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+
+        .municipal-banner-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .municipal-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .municipal-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* TIMELINE SECTION */
+        .timeline-section {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-top: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title i {
+            color: var(--municipal-red);
+            font-size: 1.5rem;
+        }
+
+        .timeline-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-left: 3px solid var(--border-color);
+            margin-left: 1.5rem;
+            position: relative;
+            transition: var(--transition);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .timeline-item:hover {
+            background: var(--bg-secondary);
+            border-left-color: var(--municipal-red);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 1rem;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--municipal-red);
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--municipal-red);
+        }
+
+        .timeline-item.tipo-gol::before {
+            background: #ffd700;
+            box-shadow: 0 0 0 2px #ffd700;
+        }
+
+        .timeline-item.tipo-amarilla::before {
+            background: #ffeb3b;
+            box-shadow: 0 0 0 2px #ffeb3b;
+        }
+
+        .timeline-item.tipo-roja::before {
+            background: #ff5252;
+            box-shadow: 0 0 0 2px #ff5252;
+        }
+
+        .timeline-minute {
+            font-weight: 900;
+            color: var(--municipal-red);
+            min-width: 45px;
+            font-size: 1.1rem;
+        }
+
+        .timeline-content-text {
+            flex: 1;
+        }
+
+        .timeline-main-text {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+            font-size: 1rem;
+        }
+
+        .timeline-sub-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .timeline-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .timeline-badge.local {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2e7d32;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .timeline-badge.visitante {
+            background: rgba(33, 150, 243, 0.1);
+            color: #0d47a1;
+            border: 1px solid rgba(33, 150, 243, 0.3);
+        }
+
+        .timeline-empty {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .timeline-empty i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        /* STATISTICS SECTION */
+        .stats-section {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-top: 2rem;
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: 60px 1fr 60px;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-value {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .stat-value-left {
+            text-align: center;
+            color: #4caf50;
+        }
+
+        .stat-value-right {
+            text-align: center;
+            color: #2196f3;
+        }
+
+        .stat-info {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-bar-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            height: 8px;
+        }
+
+        .stat-bar {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-bar-fill-left {
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #66bb6a);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        .stat-bar-fill-right {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #2196f3, #42a5f5);
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+
+        /* SIDEBAR */
+        .sidebar-section {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            height: fit-content;
+            position: sticky;
+            top: 150px;
+        }
+
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-label i {
+            color: var(--municipal-red);
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .share-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--border-color);
+        }
+
+        .share-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            flex: 1;
+            min-width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .share-btn.facebook:hover {
+            background: #1877f2;
+            color: white;
+            border-color: #1877f2;
+        }
+
+        .share-btn.twitter:hover {
+            background: #1da1f2;
+            color: white;
+            border-color: #1da1f2;
+        }
+
+        .share-btn.whatsapp:hover {
+            background: #25d366;
+            color: white;
+            border-color: #25d366;
+        }
+
+        .share-btn.link:hover {
+            background: var(--municipal-red);
+            color: white;
+            border-color: var(--municipal-red);
+        }
+
+        /* FOOTER */
+        .footer-section {
+            background: linear-gradient(135deg, var(--municipal-dark) 0%, #0d0d0d 100%);
+            color: white;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-column h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--municipal-gold);
+        }
+
+        .footer-column p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--municipal-gold);
+            padding-left: 0.5rem;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar-section {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .match-info-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .team-section {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .team-section.away {
+                flex-direction: row;
+                text-align: center;
+            }
+
+            .score-display-large {
+                font-size: 3rem;
+            }
+
+            .team-name {
+                font-size: 1.4rem;
+            }
+
+            .municipal-title {
+                font-size: 1.8rem;
+            }
+
+            .tabs-container {
+                justify-content: flex-start;
+            }
+
+            .video-overlay-scoreboard {
+                scale: 0.85;
+            }
+
+            .event-banner-content {
+                min-width: 300px;
+                padding: 1rem 1.5rem;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* LOADING ANIMATION */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--municipal-red);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ACCESSIBILITY */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+
+        /* PRINT STYLES */
+        @media print {
+            .navbar-municipal,
+            .live-status-bar,
+            .tabs-section,
+            .video-section,
+            .share-section,
+            .footer-section {
+                display: none;
+            }
+        }
+        /* ==== TABS - CONTENEDORES DE CONTENIDO ==== */
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Resaltar la tarjeta de información cuando se hace clic en "Información" */
+.sidebar-highlight {
+    box-shadow: 0 0 0 3px rgba(213, 10, 10, 0.4), 0 12px 30px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar-municipal">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ url_for('ws_partidos.pantalla_publica_partidos') }}" class="municipal-brand">
+                    <div class="brand-icon">⚽</div>
+                    <div class="brand-text">
+                        <div class="brand-title">Portal Deportivo Municipal</div>
+                        <div class="brand-subtitle">Municipalidad Distrital de Jayanca</div>
+                    </div>
+                </a>
+
+                <ul class="nav-links d-none d-md-flex">
+                    <li>
+                        <a href="{{ url_for('ws_partidos.pantalla_publica_partidos') }}" class="nav-link-item">
+                            <i class="bi bi-house-fill"></i> Inicio
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-item active">
+                            <i class="bi bi-play-circle-fill"></i> En Vivo
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-item">
+                            <i class="bi bi-trophy-fill"></i> Torneos
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link-item">
+                            <i class="bi bi-calendar-event-fill"></i> Calendario
+                        </a>
+                    </li>
+                </ul>
+
+                <button class="btn d-md-none" style="background: rgba(255,255,255,0.2); color: white; border: none;">
+                    <i class="bi bi-list" style="font-size: 1.5rem;"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- LIVE STATUS -->
+    {% if partido.estado == 'en_juego' or partido.estado_transmision == 'en_vivo' %}
+    <div class="live-status-bar">
+        <span class="live-dot"></span>
+        TRANSMISIÓN EN VIVO
+    </div>
+    {% endif %}
+
+    <!-- MATCH HEADER -->
+    <div class="match-header-section">
+        <div class="container">
+            <div class="match-info-container">
+                <!-- Team Local -->
+                <div class="team-section">
+                    <div class="team-logo-container">
+                        <div class="team-logo-text">{{ partido.equipo_local[:2]|upper }}</div>
+                    </div>
+                    <div class="team-info">
+                        <div class="team-name">{{ partido.equipo_local }}</div>
+                        <div class="team-details">
+                            <span>{{ partido.division }}</span>
+                            {% if partido.grupo %}
+                            <span>Grupo {{ partido.grupo }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Score -->
+                <div class="score-center">
+                    <div class="score-display-large">
+                        <span id="publicGolesLocal">{{ partido.goles_local or 0 }}</span>
+                        <span class="score-separator">-</span>
+                        <span id="publicGolesVisitante">{{ partido.goles_visitante or 0 }}</span>
+                    </div>
+                    <div class="match-status" id="badgeEstado">
+                        {% if partido.estado == 'en_juego' %}
+                            EN VIVO
+                        {% elif partido.estado == 'finalizado' %}
+                            FINALIZADO
+                        {% else %}
+                            PRÓXIMAMENTE
+                        {% endif %}
+                    </div>
+                    <div class="match-time-info" id="publicEstadoTexto">
+                        {% if partido.texto_estado %}
+                            {{ partido.texto_estado }}
+                        {% else %}
+                            {{ partido.fecha_hora }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Team Visitante -->
+                <div class="team-section away">
+                    <div class="team-logo-container">
+                        <div class="team-logo-text">{{ partido.equipo_visitante[:2]|upper }}</div>
+                    </div>
+                    <div class="team-info">
+                        <div class="team-name">{{ partido.equipo_visitante }}</div>
+                        <div class="team-details">
+                            <span>Torneo {{ partido.torneo }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOURNAMENT BAR -->
+    <div class="tournament-bar">
+        <div class="container">
+            <div class="tournament-info">
+                <div class="tournament-item">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>{{ partido.fecha_hora }}</span>
+                </div>
+                <div class="tournament-item">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span>{{ partido.cancha }}</span>
+                </div>
+                <div class="tournament-item">
+                    <i class="bi bi-trophy"></i>
+                    <span>{{ partido.torneo }}</span>
+                </div>
+                {% if partido.jornada %}
+                <div class="tournament-item">
+                    <i class="bi bi-hash"></i>
+                    <span>Jornada {{ partido.jornada }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs-section">
+        <div class="container">
+            <div class="tabs-container">
+                <button class="tab-button active" data-tab="live">
+                    <i class="bi bi-play-circle-fill"></i>
+                    <span>En Vivo</span>
+                </button>
+                <button class="tab-button" data-tab="stats">
+                    <i class="bi bi-bar-chart-fill"></i>
+                    <span>Estadísticas</span>
+                </button>
+                <button class="tab-button" data-tab="timeline">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Eventos</span>
+                </button>
+                <button class="tab-button" data-tab="info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Información</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content-container">
+        <div class="content-grid">
+            
+            <!-- LEFT COLUMN -->
+                    <!-- LEFT COLUMN -->
+        <div>
+            <!-- ========== TAB LIVE (EN VIVO) ========== -->
+            <div id="tab-live" class="tab-pane active">
+                <!-- VIDEO SECTION -->
+                <div class="video-section">
+                    <div class="video-header">
+                        <div class="video-title">
+                            <i class="bi bi-camera-video-fill"></i>
+                            Transmisión en Vivo
+                        </div>
+                        <div class="video-controls">
+                            <button class="video-control-btn" title="Pantalla completa">
+                                <i class="bi bi-arrows-fullscreen"></i>
+                            </button>
+                            <button class="video-control-btn" title="Compartir">
+                                <i class="bi bi-share-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="video-wrapper">
+                        {% if partido.url_publica %}
+                            {% if partido.plataforma == 'Facebook' %}
+                                <iframe
+                                    src="https://www.facebook.com/plugins/video.php?href={{ partido.url_publica|urlencode }}&show_text=0&autoplay=1"
+                                    scrolling="no"
+                                    frameborder="0"
+                                    allowfullscreen="true"
+                                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+                                </iframe>
+                            {% elif partido.plataforma == 'Twitch' %}
+                                {% set twitch_channel = partido.url_publica
+                                    | replace('https://www.twitch.tv/', '')
+                                    | replace('https://twitch.tv/', '')
+                                    | replace('/', '') %}
+                                <iframe
+                                    src="https://player.twitch.tv/?channel={{ twitch_channel }}&parent={{ twitch_parent }}&parent=localhost&parent=127.0.0.1"
+                                    frameborder="0"
+                                    allowfullscreen="true"
+                                    scrolling="no"
+                                    allow="autoplay; encrypted-media">
+                                </iframe>
+                            {% else %}
+                                <iframe
+                                    src="{{ partido.url_publica }}"
+                                    frameborder="0"
+                                    allowfullscreen
+                                    allow="autoplay; encrypted-media">
+                                </iframe>
+                            {% endif %}
+                        {% else %}
+                            <div class="video-placeholder">
+                                <i class="bi bi-camera-video-off"></i>
+                                <p>Transmisión no disponible</p>
+                                <small>Este partido aún no cuenta con transmisión configurada</small>
+                            </div>
+                        {% endif %}
+
+                        <!-- OVERLAY SCOREBOARD -->
+                        <div class="video-overlay-scoreboard" id="scoreOverlayPublic">
+                            <div class="overlay-team">
+                                <div class="overlay-logo" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">
+                                    {{ partido.equipo_local[:2]|upper }}
+                                </div>
+                                <div class="overlay-score" id="overlayGolesLocal">{{ partido.goles_local or 0 }}</div>
+                            </div>
+
+                            <div class="overlay-status" id="overlayEstadoPartido">
+                                {% if partido.estado == 'en_juego' %}
+                                    EN VIVO
+                                {% elif partido.estado == 'finalizado' %}
+                                    FINALIZADO
+                                {% else %}
+                                    PROGRAMADO
+                                {% endif %}
+                            </div>
+
+                            <div class="overlay-team">
+                                <div class="overlay-score" id="overlayGolesVisitante">{{ partido.goles_visitante or 0 }}</div>
+                                <div class="overlay-logo" style="background: linear-gradient(135deg, #2196f3, #0d47a1);">
+                                    {{ partido.equipo_visitante[:2]|upper }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EVENT BANNER -->
+                        <div id="eventBanner" class="event-banner-overlay">
+                            <div class="event-banner-content" id="eventBannerContent">
+                                <div class="event-icon-large" id="eventIcon">⚽</div>
+                                <div class="event-text-container">
+                                    <div class="event-main-text" id="eventMainText">¡GOL!</div>
+                                    <div class="event-sub-text" id="eventSubText">Equipo Local anota</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MUNICIPAL BANNER -->
+                <div class="municipal-banner">
+                    <div class="municipal-banner-content">
+                        <div class="municipal-title">Municipalidad Distrital de Jayanca</div>
+                        <div class="municipal-subtitle">Promoviendo el deporte y la unión de nuestra comunidad</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== TAB TIMELINE (EVENTOS) ========== -->
+            <div id="tab-timeline" class="tab-pane">
+                <div class="timeline-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="bi bi-clock-history"></i>
+                            Línea de Tiempo del Partido
+                        </div>
+                        <span class="badge bg-danger">
+                            <i class="bi bi-broadcast"></i> En Vivo
+                        </span>
+                    </div>
+                    <div id="timelineEventos">
+                        <div class="timeline-empty">
+                            <i class="bi bi-hourglass-split"></i>
+                            <p>Esperando eventos del partido...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== TAB STATS (ESTADÍSTICAS) ========== -->
+            <div id="tab-stats" class="tab-pane">
+                <div class="stats-section">
+                    <div class="section-header">
+                        <div class="section-title">
+                            <i class="bi bi-bar-chart-fill"></i>
+                            Estadísticas del Partido
+                        </div>
+                    </div>
+
+                    <div class="stat-row">
+                        <div class="stat-value stat-value-left">7</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Tiros a puerta</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill-left" style="width: 50%;"></div>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill-right" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-value stat-value-right">7</div>
+                    </div>
+
+                    <div class="stat-row">
+                        <div class="stat-value stat-value-left">10</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Tiros totales</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill-left" style="width: 40%;"></div>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill-right" style="width: 60%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-value stat-value-right">15</div>
+                    </div>
+
+                    <div class="stat-row">
+                        <div class="stat-value stat-value-left">3</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Tarjetas amarillas</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill-left" style="width: 60%;"></div>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill-right" style="width: 40%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-value stat-value-right">2</div>
+                    </div>
+
+                    <div class="stat-row">
+                        <div class="stat-value stat-value-left">4</div>
+                        <div class="stat-info">
+                            <div class="stat-label">Tiros de esquina</div>
+                            <div class="stat-bar-container">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill-left" style="width: 35%;"></div>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill-right" style="width: 65%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="stat-value stat-value-right">7</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <!-- RIGHT SIDEBAR -->
+            <div>
+                <!-- MATCH INFO -->
+                <div class="sidebar-section">
+                    <div class="sidebar-title">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Información del Partido
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            Estadio
+                        </div>
+                        <div class="info-value">{{ partido.cancha }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-trophy-fill"></i>
+                            Torneo
+                        </div>
+                        <div class="info-value">{{ partido.torneo }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-layers-fill"></i>
+                            División
+                        </div>
+                        <div class="info-value">{{ partido.division }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-calendar-event"></i>
+                            Fecha y hora
+                        </div>
+                        <div class="info-value">{{ partido.fecha_hora }}</div>
+                    </div>
+
+                    {% if partido.jornada %}
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-hash"></i>
+                            Jornada
+                        </div>
+                        <div class="info-value">{{ partido.jornada }}</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-circle-fill"></i>
+                            Estado
+                        </div>
+                        <div class="info-value">
+                            {% if partido.estado == 'en_juego' %}
+                                <span class="badge bg-success">En Juego</span>
+                            {% elif partido.estado == 'finalizado' %}
+                                <span class="badge bg-secondary">Finalizado</span>
+                            {% else %}
+                                <span class="badge bg-primary">Programado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if partido.plataforma %}
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-broadcast"></i>
+                            Plataforma
+                        </div>
+                        <div class="info-value">{{ partido.plataforma }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if partido.url_publica %}
+                    <div class="info-item">
+                        <div class="info-label">
+                            <i class="bi bi-link-45deg"></i>
+                            Enlace
+                        </div>
+                        <div class="info-value">
+                            <a href="{{ partido.url_publica }}" target="_blank" 
+                               style="color: var(--municipal-red); font-weight: 700;">
+                                Ver en {{ partido.plataforma or 'plataforma' }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- SHARE SECTION -->
+                    <div class="share-section">
+                        <div class="share-title">Compartir partido</div>
+                        <div class="share-buttons">
+                            <button class="share-btn facebook" title="Compartir en Facebook">
+                                <i class="bi bi-facebook"></i>
+                            </button>
+                            <button class="share-btn twitter" title="Compartir en Twitter">
+                                <i class="bi bi-twitter-x"></i>
+                            </button>
+                            <button class="share-btn whatsapp" title="Compartir en WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </button>
+                            <button class="share-btn link" title="Copiar enlace" id="copyLinkBtn">
+                                <i class="bi bi-link-45deg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer-section">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h4>Portal Deportivo Municipal</h4>
+                    <p>
+                        La Municipalidad Distrital de Jayanca promueve el deporte como herramienta 
+                        de integración social y desarrollo comunitario. Aquí podrás seguir todos 
+                        los eventos deportivos de nuestra localidad.
+                    </p>
+                </div>
+                <div class="footer-column">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Inicio</a></li>
+                        <li><a href="#">Torneos</a></li>
+                        <li><a href="#">Calendario</a></li>
+                        <li><a href="#">Resultados</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Información</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Términos y Condiciones</a></li>
+                        <li><a href="#">Política de Privacidad</a></li>
+                        <li><a href="#">Contacto</a></li>
+                        <li><a href="#">Preguntas Frecuentes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Contacto</h4>
+                    <ul class="footer-links">
+                        <li><i class="bi bi-geo-alt-fill"></i> Jayanca, Lambayeque</li>
+                        <li><i class="bi bi-telephone-fill"></i> (074) XXX-XXX</li>
+                        <li><i class="bi bi-envelope-fill"></i> deportes@jayanca.gob.pe</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Municipalidad Distrital de Jayanca. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // =========================
+        // CONFIGURATION
+        // =========================
+        const CONFIG = {
+            API_ESTADO: "{{ url_for('ws_partidos.api_estado_partido', partido_id=partido.id) }}",
+            API_ULTIMO_EVENTO: "{{ url_for('ws_partidos.api_ultimo_evento', partido_id=partido.id) }}",
+            API_EVENTOS: "{{ url_for('ws_partidos.api_eventos_partido', partido_id=partido.id) }}",
+            EQUIPO_LOCAL: "{{ partido.equipo_local }}",
+            EQUIPO_VISITANTE: "{{ partido.equipo_visitante }}",
+            UPDATE_INTERVAL_SCORE: 5000,
+            UPDATE_INTERVAL_EVENT: 4000,
+            UPDATE_INTERVAL_TIMELINE: 8000,
+            EVENT_DISPLAY_TIME: 5500
+        };
+
+        // =========================
+        // STATE
+        // =========================
+        const state = {
+            ultimoEventoId: null,
+            timeoutEvento: null
+        };
+
+        // =========================
+        // DOM ELEMENTS
+        // =========================
+        const elements = {
+            // Scoreboard
+            badgeEstado: document.getElementById('badgeEstado'),
+            publicGolesLocal: document.getElementById('publicGolesLocal'),
+            publicGolesVisitante: document.getElementById('publicGolesVisitante'),
+            publicEstadoTexto: document.getElementById('publicEstadoTexto'),
+            
+            // Overlay
+            scoreOverlay: document.getElementById('scoreOverlayPublic'),
+            overlayGolesLocal: document.getElementById('overlayGolesLocal'),
+            overlayGolesVisitante: document.getElementById('overlayGolesVisitante'),
+            overlayEstadoPartido: document.getElementById('overlayEstadoPartido'),
+            
+            // Events
+            eventBanner: document.getElementById('eventBanner'),
+            eventBannerContent: document.getElementById('eventBannerContent'),
+            eventIcon: document.getElementById('eventIcon'),
+            eventMainText: document.getElementById('eventMainText'),
+            eventSubText: document.getElementById('eventSubText'),
+            
+            // Timeline
+            timelineEventos: document.getElementById('timelineEventos'),
+
+            // Sidebar (para tab "Información")
+            sidebarSection: document.querySelector('.sidebar-section')
+        };
+
+        // =========================
+        // SCOREBOARD UPDATE
+        // =========================
+        async function actualizarMarcador() {
+            try {
+                const response = await fetch(CONFIG.API_ESTADO, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                
+                const golesLocal = data.goles_local ?? data.golesLocal ?? 0;
+                const golesVisitante = data.goles_visitante ?? data.golesVisitante ?? 0;
+                const estado = (data.estado || '').toLowerCase();
+                const textoEstado = data.texto_estado || data.textoEstado || '';
+                const mostrarOverlay = data.mostrar_overlay ?? data.mostrarOverlay ?? true;
+
+                // Update main scoreboard
+                if (elements.publicGolesLocal) elements.publicGolesLocal.textContent = golesLocal;
+                if (elements.publicGolesVisitante) elements.publicGolesVisitante.textContent = golesVisitante;
+
+                // Update overlay
+                if (elements.overlayGolesLocal) elements.overlayGolesLocal.textContent = golesLocal;
+                if (elements.overlayGolesVisitante) elements.overlayGolesVisitante.textContent = golesVisitante;
+
+                // Update status
+                if (elements.overlayEstadoPartido) {
+                    if (textoEstado) {
+                        elements.overlayEstadoPartido.textContent = textoEstado;
+                    } else {
+                        elements.overlayEstadoPartido.textContent = 
+                            estado === 'en_juego' ? 'EN VIVO' :
+                            estado === 'finalizado' ? 'FINALIZADO' : 'PROGRAMADO';
+                    }
+                }
+
+                // Show/hide overlay
+                if (elements.scoreOverlay) {
+                    elements.scoreOverlay.style.display = mostrarOverlay ? 'flex' : 'none';
+                }
+
+                // Update badge
+                if (elements.badgeEstado) {
+                    const badgeText = 
+                        estado === 'en_juego' ? 'EN VIVO' :
+                        estado === 'finalizado' ? 'FINALIZADO' : 'PRÓXIMAMENTE';
+                    elements.badgeEstado.textContent = badgeText;
+                }
+
+                // Update text
+                if (elements.publicEstadoTexto) {
+                    elements.publicEstadoTexto.textContent = textoEstado || 
+                        (estado === 'en_juego' ? 'Partido en juego' :
+                         estado === 'finalizado' ? 'Finalizado' : '');
+                }
+
+            } catch (error) {
+                console.error('Error actualizando marcador:', error);
+            }
+        }
+
+        // =========================
+        // EVENT MESSAGE BUILDER
+        // =========================
+        function construirMensajeEvento(evt) {
+            const { tipo, equipo, jugador1, jugador2, minuto, texto_libre } = evt;
+            const nombreEquipo = equipo === 'local' ? CONFIG.EQUIPO_LOCAL : CONFIG.EQUIPO_VISITANTE;
+
+            let main = '';
+            let sub = '';
+
+            switch (tipo) {
+                case 'gol':
+                    main = '¡GOOOL!';
+                    sub = jugador1 
+                        ? `${jugador1} (${nombreEquipo})` 
+                        : `Gol de ${nombreEquipo}`;
+                    break;
+                case 'penal':
+                    main = 'PENAL';
+                    sub = jugador1 
+                        ? `${nombreEquipo} - Ejecuta ${jugador1}` 
+                        : `Penal a favor de ${nombreEquipo}`;
+                    break;
+                case 'offside':
+                case 'fuera_de_juego':
+                    main = 'FUERA DE JUEGO';
+                    sub = jugador1 
+                        ? `${jugador1} (${nombreEquipo})` 
+                        : `Offside de ${nombreEquipo}`;
+                    break;
+                case 'amarilla':
+                    main = 'TARJETA AMARILLA';
+                    sub = jugador1 
+                        ? `${jugador1} (${nombreEquipo})` 
+                        : `Amonestación en ${nombreEquipo}`;
+                    break;
+                case 'roja':
+                    main = 'TARJETA ROJA';
+                    sub = jugador1 
+                        ? `${jugador1} (${nombreEquipo})` 
+                        : `Expulsión en ${nombreEquipo}`;
+                    break;
+                case 'cambio':
+                    main = 'CAMBIO';
+                    sub = jugador1 && jugador2 
+                        ? `Sale ${jugador1}, entra ${jugador2} (${nombreEquipo})` 
+                        : `Cambio en ${nombreEquipo}`;
+                    break;
+                default:
+                    main = 'EVENTO';
+                    sub = texto_libre || `Nuevo evento en ${nombreEquipo}`;
+            }
+
+            if (minuto) {
+                sub += ` • ${minuto}'`;
+            }
+
+            return { main, sub, tipo, equipo, minuto };
+        }
+
+        // =========================
+        // EVENT DISPLAY
+        // =========================
+        function getEventIcon(tipo) {
+            const icons = {
+                gol: '⚽',
+                penal: '🎯',
+                offside: '🚩',
+                fuera_de_juego: '🚩',
+                amarilla: '🟨',
+                roja: '🟥',
+                cambio: '🔁'
+            };
+            return icons[tipo] || '📣';
+        }
+
+        function mostrarEventoBanner(evt) {
+            if (!elements.eventBanner) return;
+
+            // Clear previous timeout
+            if (state.timeoutEvento) {
+                clearTimeout(state.timeoutEvento);
+                elements.eventBanner.classList.remove('show');
+            }
+
+            const { main, sub, tipo } = construirMensajeEvento(evt);
+            const icono = getEventIcon(tipo);
+
+            // Update content
+            elements.eventIcon.textContent = icono;
+            elements.eventMainText.textContent = main;
+            elements.eventSubText.textContent = sub;
+
+            // Apply type class
+            elements.eventBannerContent.className = 'event-banner-content';
+            if (['gol', 'penal', 'amarilla', 'roja', 'cambio', 'offside', 'fuera_de_juego'].includes(tipo)) {
+                elements.eventBannerContent.classList.add(`tipo-${tipo}`);
+            }
+
+            // Show banner
+            setTimeout(() => elements.eventBanner.classList.add('show'), 50);
+
+            // Hide after delay
+            state.timeoutEvento = setTimeout(() => {
+                elements.eventBanner.classList.remove('show');
+            }, CONFIG.EVENT_DISPLAY_TIME);
+        }
+
+        async function verificarNuevoEvento() {
+            try {
+                const response = await fetch(CONFIG.API_ULTIMO_EVENTO, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+                
+                if (!data.ok || !data.evento) return;
+
+                const evt = data.evento;
+                
+                if (!evt.evento_id || evt.evento_id === state.ultimoEventoId) return;
+
+                state.ultimoEventoId = evt.evento_id;
+                mostrarEventoBanner(evt);
+                
+            } catch (error) {
+                console.error('Error verificando evento:', error);
+            }
+        }
+
+        // =========================
+        // TIMELINE
+        // =========================
+        function renderTimeline(eventos) {
+            if (!elements.timelineEventos) return;
+
+            if (!eventos || eventos.length === 0) {
+                elements.timelineEventos.innerHTML = `
+                    <div class="timeline-empty">
+                        <i class="bi bi-hourglass-split"></i>
+                        <p>Esperando eventos del partido...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort events
+            eventos.sort((a, b) => {
+                const minA = parseInt(a.minuto || '0', 10);
+                const minB = parseInt(b.minuto || '0', 10);
+                if (minA !== minB) return minA - minB;
+                return (a.creado_en || '').localeCompare(b.creado_en || '');
+            });
+
+            let html = '<ul class="timeline-list">';
+            
+            eventos.forEach(evt => {
+                const { main, sub, tipo, equipo, minuto } = construirMensajeEvento(evt);
+                const minStr = minuto ? `${minuto}'` : '';
+                const claseTipo = tipo ? `tipo-${tipo}` : 'tipo-otro';
+
+                let badgeEquipo = '';
+                if (equipo === 'local') {
+                    badgeEquipo = `<span class="timeline-badge local">${CONFIG.EQUIPO_LOCAL}</span>`;
+                } else if (equipo === 'visitante') {
+                    badgeEquipo = `<span class="timeline-badge visitante">${CONFIG.EQUIPO_VISITANTE}</span>`;
+                }
+
+                html += `
+                    <li class="timeline-item ${claseTipo}">
+                        <div class="timeline-minute">${minStr || '-'}</div>
+                        <div class="timeline-content-text">
+                            <div class="timeline-main-text">${main}${badgeEquipo}</div>
+                            <div class="timeline-sub-text">${sub}</div>
+                        </div>
+                    </li>
+                `;
+            });
+
+            html += '</ul>';
+            elements.timelineEventos.innerHTML = html;
+        }
+
+        async function cargarTimeline() {
+            try {
+                const response = await fetch(CONFIG.API_EVENTOS, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+
+                if (!response.ok) return;
+
+                const data = await response.json();
+                
+                if (data.ok) {
+                    renderTimeline(data.eventos || []);
+                }
+            } catch (error) {
+                console.error('Error cargando timeline:', error);
+            }
+        }
+
+        // =========================
+        // TABS - CAMBIO DE CONTENIDO
+        // =========================
+        const tabPanes = {
+            live: document.getElementById('tab-live'),
+            stats: document.getElementById('tab-stats'),
+            timeline: document.getElementById('tab-timeline')
+        };
+
+        document.querySelectorAll('.tab-button').forEach(tab => {
+            tab.addEventListener('click', function () {
+                const target = this.dataset.tab; // live, stats, timeline, info
+
+                // Activar botón
+                document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // Mostrar/Ocultar panes principales (columna izquierda)
+                Object.keys(tabPanes).forEach(key => {
+                    if (tabPanes[key]) {
+                        if (key === target) {
+                            tabPanes[key].classList.add('active');
+                        } else {
+                            tabPanes[key].classList.remove('active');
+                        }
+                    }
+                });
+
+                // Tab "info": desplazarse y resaltar la sección de información (sidebar derecha)
+                if (target === 'info' && elements.sidebarSection) {
+                    // Ocultar panes de la izquierda
+                    Object.keys(tabPanes).forEach(key => tabPanes[key]?.classList.remove('active'));
+
+                    elements.sidebarSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                    elements.sidebarSection.classList.add('sidebar-highlight');
+                    setTimeout(() => {
+                        elements.sidebarSection.classList.remove('sidebar-highlight');
+                    }, 1500);
+                }
+            });
+        });
+
+        // =========================
+        // SHARE FUNCTIONALITY
+        // =========================
+        document.getElementById('copyLinkBtn')?.addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('¡Enlace copiado al portapapeles!');
+            });
+        });
+
+        document.querySelector('.share-btn.facebook')?.addEventListener('click', () => {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank');
+        });
+
+        document.querySelector('.share-btn.whatsapp')?.addEventListener('click', () => {
+            window.open(`https://wa.me/?text=${encodeURIComponent(window.location.href)}`, '_blank');
+        });
+
+        // =========================
+        // INITIALIZATION
+        // =========================
+        function initialize() {
+            console.log('🚀 Inicializando portal público...');
+
+            // Initial load
+            actualizarMarcador();
+            verificarNuevoEvento();
+            cargarTimeline();
+
+            // Set intervals
+            setInterval(actualizarMarcador, CONFIG.UPDATE_INTERVAL_SCORE);
+            setInterval(verificarNuevoEvento, CONFIG.UPDATE_INTERVAL_EVENT);
+            setInterval(cargarTimeline, CONFIG.UPDATE_INTERVAL_TIMELINE);
+
+            console.log('✅ Portal público listo');
+        }
+
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
+    </script>
+
+</body>
+</html>

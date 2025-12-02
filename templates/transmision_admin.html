@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Control Room - {{ partido.equipo_local }} vs {{ partido.equipo_visitante }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --danger-gradient: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --dark-bg: #0a0e27;
+            --card-bg: #151932;
+            --card-hover: #1a1f3a;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-muted: #8b92b0;
+            --text-bright: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: var(--text-bright);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* ANIMATED BACKGROUND */
+        .background-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+            opacity: 0.03;
+        }
+
+        .background-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.4) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(-50px, 50px) rotate(180deg);
+            }
+        }
+
+        /* HEADER */
+        .control-header {
+            background: rgba(21, 25, 50, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .match-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            border-radius: 20px;
+            padding: 0.4rem 0.9rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        .match-teams {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-icon {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-bright);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary-custom {
+            background: var(--primary-gradient);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        /* MAIN LAYOUT */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            padding: 1.5rem 0;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* VIDEO PREVIEW */
+        .video-preview-section {
+            position: relative;
+        }
+
+        .preview-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .preview-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .preview-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .preview-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .preview-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+        }
+
+        .preview-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .preview-btn.active {
+            background: var(--primary-gradient);
+            border-color: transparent;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            color: var(--text-muted);
+        }
+
+        .video-placeholder i {
+            font-size: 3.5rem;
+            opacity: 0.5;
+        }
+
+        /* SCORE OVERLAY */
+        .score-overlay {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s ease;
+        }
+
+        .score-team {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 160px;
+        }
+
+        .team-logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1rem;
+            letter-spacing: -0.02em;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .team-logo.local {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .team-logo.visitante {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .team-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .score-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+            min-width: 100px;
+        }
+
+        .score-numbers {
+            font-size: 2rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #667eea 0%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-status {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* EVENT OVERLAY */
+        .event-overlay {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%) translateY(40px);
+            z-index: 11;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .event-overlay.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .event-banner {
+            min-width: 320px;
+            max-width: 600px;
+            padding: 1.25rem 1.75rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .event-icon {
+            font-size: 2.5rem;
+            animation: bounce-icon 0.6s ease;
+        }
+
+        @keyframes bounce-icon {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .event-texts {
+            flex: 1;
+        }
+
+        .event-title {
+            font-size: 1.1rem;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .event-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        /* Event types */
+        .event-banner.gol {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ff9800 100%);
+            color: #1a1300;
+        }
+
+        .event-banner.penal {
+            background: linear-gradient(135deg, #00b4db 0%, #0083b0 100%);
+            color: #ffffff;
+        }
+
+        .event-banner.amarilla {
+            background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%);
+            color: #1a1300;
+        }
+
+        .event-banner.roja {
+            background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+            color: #ffffff;
+        }
+
+        .event-banner.cambio {
+            background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%);
+            color: #ffffff;
+        }
+
+        .event-banner.offside {
+            background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
+            color: #ffffff;
+        }
+
+        .event-banner.otro {
+            background: linear-gradient(135deg, #26a69a 0%, #00796b 100%);
+            color: #e0f2f1;
+        }
+
+        /* CONTROL PANELS */
+        .control-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .control-panel:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .panel-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .panel-title i {
+            font-size: 1.25rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .panel-body {
+            padding: 1.5rem;
+        }
+
+        .form-label-custom {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+
+        .input-custom {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: var(--text-bright);
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .input-custom:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-custom::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .select-custom {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: var(--text-bright);
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238b92b0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            padding-right: 2.5rem;
+        }
+
+        .select-custom:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .select-custom option {
+            background: var(--card-bg);
+            color: var(--text-bright);
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked+.slider {
+            background: var(--success-gradient);
+            border-color: transparent;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        .switch-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-bright);
+        }
+
+        .score-display {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1.5rem;
+            align-items: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .score-team-display {
+            text-align: center;
+        }
+
+        .score-team-display.home {
+            text-align: left;
+        }
+
+        .score-team-display.away {
+            text-align: right;
+        }
+
+        .score-team-name {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .score-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            line-height: 1;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-separator {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-muted);
+        }
+
+        .btn-action {
+            width: 100%;
+            background: var(--success-gradient);
+            border: none;
+            padding: 1rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 239, 125, 0.6);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
+        }
+
+        .btn-action i {
+            font-size: 1.25rem;
+        }
+
+        /* EVENT TYPES GRID */
+        .event-types-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .event-type-btn {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            text-align: center;
+        }
+
+        .event-type-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .event-type-btn.active {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .event-type-icon {
+            font-size: 1.75rem;
+        }
+
+        .event-type-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* STATS PANEL */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        /* TIMELINE */
+        .timeline-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .timeline-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .timeline-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        .timeline-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .timeline-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .timeline-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-time {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-subtext {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .layout-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-content {
+                flex-wrap: wrap;
+            }
+
+            .score-overlay {
+                scale: 0.85;
+            }
+
+            .event-types-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* TOOLTIPS */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.5rem 0.75rem;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            margin-bottom: 0.5rem;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* ALERTS */
+        .alert-custom {
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+        }
+
+        .alert-success {
+            background: rgba(56, 239, 125, 0.1);
+            border: 1px solid rgba(56, 239, 125, 0.3);
+            color: #6ee7b7;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-animation"></div>
+
+    <!-- HEADER -->
+    <header class="control-header">
+        <div class="container-fluid">
+            <div class="header-content">
+                <div class="match-title">
+                    <div class="live-indicator">
+                        <div class="live-dot"></div>
+                        <span>CONTROL ROOM</span>
+                    </div>
+                    <div class="match-teams">
+                        {{ partido.equipo_local }} vs {{ partido.equipo_visitante }}
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn-icon" data-tooltip="Actualizar" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button class="btn-icon" data-tooltip="Configuración">
+                        <i class="bi bi-gear"></i>
+                    </button>
+                    <a href="{{ url_for('ws_partidos.ver_transmision', partido_id=partido.id) }}"
+                        class="btn-primary-custom" target="_blank">
+                        <i class="bi bi-eye"></i>
+                        <span>Vista Pública</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-container">
+        <div class="container-fluid">
+            <div class="layout-grid">
+
+                <!-- LEFT COLUMN: VIDEO PREVIEW -->
+                <div class="video-preview-section">
+                    <div class="preview-card">
+                        <div class="preview-header">
+                            <div class="preview-title">
+                                <i class="bi bi-tv"></i> Vista Previa de Transmisión
+                            </div>
+                            <div class="preview-controls">
+                                <button class="preview-btn active" data-tooltip="Pantalla completa">
+                                    <i class="bi bi-arrows-fullscreen"></i>
+                                </button>
+                                <button class="preview-btn" data-tooltip="PiP" id="btnPip">
+                                    <i class="bi bi-pip"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="video-container">
+                            {% if partido.url_publica %}
+                            {% if partido.plataforma == 'Facebook' %}
+                            <iframe
+                                src="https://www.facebook.com/plugins/video.php?href={{ partido.url_publica|urlencode }}&show_text=0&autoplay=1"
+                                style="border:none;overflow:hidden" scrolling="no" frameborder="0"
+                                allowfullscreen="true"
+                                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share">
+                            </iframe>
+                            {% elif partido.plataforma == 'Twitch' and twitch_channel %}
+                            <iframe
+                                src="https://player.twitch.tv/?channel={{ twitch_channel }}&parent=localhost&parent=127.0.0.1"
+                                frameborder="0" allowfullscreen="true" scrolling="no" allow="autoplay; encrypted-media">
+                            </iframe>
+                            {% else %}
+                            <iframe src="{{ partido.url_publica }}" frameborder="0" allowfullscreen
+                                allow="autoplay; encrypted-media">
+                            </iframe>
+                            {% endif %}
+                            {% else %}
+                            <div class="video-placeholder">
+                                <i class="bi bi-camera-video-off"></i>
+                                <p>Sin URL de transmisión configurada</p>
+                            </div>
+                            {% endif %}
+
+                            <!-- SCORE OVERLAY -->
+                            <div class="score-overlay" id="scoreOverlay">
+                                <div class="score-team">
+                                    <div class="team-logo local">
+                                        {{ partido.equipo_local[:2]|upper }}
+                                    </div>
+                                    <div class="team-name" id="nombreLocal">{{ partido.equipo_local }}</div>
+                                </div>
+
+                                <div class="score-center">
+                                    <div class="score-numbers">
+                                        <span id="golesLocal">{{ partido.goles_local or 0 }}</span>
+                                        <span style="opacity: 0.5;">-</span>
+                                        <span id="golesVisitante">{{ partido.goles_visitante or 0 }}</span>
+                                    </div>
+                                    <div class="score-status" id="estadoPartido">
+                                        {% if partido.estado == 'en_juego' %}
+                                        EN VIVO
+                                        {% elif partido.estado == 'finalizado' %}
+                                        FINALIZADO
+                                        {% else %}
+                                        PROGRAMADO
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="score-team" style="flex-direction: row-reverse;">
+                                    <div class="team-logo visitante">
+                                        {{ partido.equipo_visitante[:2]|upper }}
+                                    </div>
+                                    <div class="team-name" id="nombreVisitante">{{ partido.equipo_visitante }}</div>
+                                </div>
+                            </div>
+
+                            <!-- EVENT OVERLAY -->
+                            <div id="eventOverlayAdmin" class="event-overlay"></div>
+                        </div>
+                    </div>
+
+                    <!-- TIMELINE OF EVENTS -->
+                    <div class="control-panel mt-3">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="bi bi-clock-history"></i>
+                                <span>Línea de Tiempo</span>
+                            </div>
+                            <span class="badge bg-primary" id="eventCount">0 eventos</span>
+                        </div>
+                        <div class="panel-body">
+                            <div class="timeline-container" id="timelineContainer">
+                                <div class="empty-state">
+                                    <i class="bi bi-calendar-x"></i>
+                                    <p>No hay eventos registrados aún</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: CONTROLS -->
+                <div class="control-panels">
+
+                    <!-- SCOREBOARD CONTROL -->
+                    <div class="control-panel mb-3">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="bi bi-scoreboard"></i>
+                                <span>Control de Marcador</span>
+                            </div>
+                            <div class="switch-container">
+                                <label class="switch">
+                                    <input type="checkbox" id="chkMostrar" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="score-display">
+                                <div class="score-team-display home">
+                                    <div class="score-team-name">{{ partido.equipo_local }}</div>
+                                    <div class="score-value" id="displayGolesLocal">{{ partido.goles_local or 0 }}</div>
+                                </div>
+                                <div class="score-separator">:</div>
+                                <div class="score-team-display away">
+                                    <div class="score-team-name">{{ partido.equipo_visitante }}</div>
+                                    <div class="score-value" id="displayGolesVisitante">{{ partido.goles_visitante or 0
+                                        }}</div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="input-group-custom">
+                                        <label class="form-label-custom">Goles Local</label>
+                                        <input type="number" class="input-custom" id="inpGolesLocal"
+                                            value="{{ partido.goles_local or 0 }}" min="0">
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group-custom">
+                                        <label class="form-label-custom">Goles Visitante</label>
+                                        <input type="number" class="input-custom" id="inpGolesVisitante"
+                                            value="{{ partido.goles_visitante or 0 }}" min="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-group-custom">
+                                <label class="form-label-custom">Estado del Partido</label>
+                                <input type="text" class="input-custom" id="inpEstado"
+                                    placeholder="EN VIVO, 1T 23', ENTRETIEMPO, etc."
+                                    value="{% if partido.estado == 'en_juego' %}EN VIVO{% elif partido.estado == 'finalizado' %}FINALIZADO{% else %}PROGRAMADO{% endif %}">
+                            </div>
+
+                            <div class="alert-custom alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <span>Los cambios se sincronizan automáticamente con la vista pública</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EVENT CONTROL -->
+                    <div class="control-panel mb-3">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="bi bi-lightning-charge"></i>
+                                <span>Registrar Evento</span>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <label class="form-label-custom">Tipo de Evento</label>
+                            <div class="event-types-grid">
+                                <div class="event-type-btn" data-type="gol">
+                                    <div class="event-type-icon">⚽</div>
+                                    <div class="event-type-label">Gol</div>
+                                </div>
+
+                                <div class="event-type-btn" data-type="penal">
+                                    <div class="event-type-icon">🎯</div>
+                                    <div class="event-type-label">Penal</div>
+                                </div>
+
+                                <div class="event-type-btn" data-type="amarilla">
+                                    <div class="event-type-icon">🟨</div>
+                                    <div class="event-type-label">Amarilla</div>
+                                </div>
+
+                                <div class="event-type-btn" data-type="roja">
+                                    <div class="event-type-icon">🟥</div>
+                                    <div class="event-type-label">Roja</div>
+                                </div>
+
+                                <div class="event-type-btn" data-type="cambio">
+                                    <div class="event-type-icon">🔄</div>
+                                    <div class="event-type-label">Cambio</div>
+                                </div>
+
+                                <div class="event-type-btn" data-type="offside">
+                                    <div class="event-type-icon">🧣</div>
+                                    <div class="event-type-label">Offside</div>
+                                </div>
+
+                                <div class="event-type-btn" data-type="tiro_puerta">
+                                    <div class="event-type-icon">🎯</div>
+                                    <div class="event-type-label">Tiro a puerta</div>
+                                </div>
+
+                                <div class="event-type-btn" data-type="tiro_esquina">
+                                    <div class="event-type-icon">🚩</div>
+                                    <div class="event-type-label">Tiro de esquina</div>
+                                </div>
+
+                            </div>
+
+                            <input type="hidden" id="selTipoEvento">
+
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <div class="input-group-custom">
+                                        <label class="form-label-custom">Equipo</label>
+                                        <select class="select-custom" id="selEquipoEvento">
+                                            <option value="">Seleccionar...</option>
+                                            <option value="local">{{ partido.equipo_local }}</option>
+                                            <option value="visitante">{{ partido.equipo_visitante }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="input-group-custom">
+                                        <label class="form-label-custom">Minuto</label>
+                                        <input type="number" class="input-custom" id="inpMinutoEvento" placeholder="45"
+                                            min="0" max="120">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-group-custom">
+                                <label class="form-label-custom">Jugador Principal</label>
+                                <input type="text" class="input-custom" id="inpJugador1"
+                                    placeholder="Nombre del jugador">
+                            </div>
+
+                            <div class="input-group-custom" id="grupoJugador2" style="display: none;">
+                                <label class="form-label-custom">Jugador 2 (Cambio)</label>
+                                <input type="text" class="input-custom" id="inpJugador2" placeholder="Entra...">
+                            </div>
+
+                            <div class="input-group-custom">
+                                <label class="form-label-custom">Detalles Adicionales (Opcional)</label>
+                                <input type="text" class="input-custom" id="inpTextoLibre"
+                                    placeholder="Ej: Tiro libre, corner, etc.">
+                            </div>
+
+                            <button class="btn-action" id="btnLanzarEvento">
+                                <i class="bi bi-send-fill"></i>
+                                <span>Lanzar Evento</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- QUICK STATS -->
+                    <div class="control-panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <i class="bi bi-graph-up"></i>
+                                <span>Estadísticas Rápidas</span>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value" id="statGoles">0</div>
+                                    <div class="stat-label">Goles</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="statAmarillas">0</div>
+                                    <div class="stat-label">Amarillas</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="statRojas">0</div>
+                                    <div class="stat-label">Rojas</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value" id="statCambios">0</div>
+                                    <div class="stat-label">Cambios</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================
+        // CONFIGURATION
+        // =========================
+        const CONFIG = {
+            API_MARCADOR: "{{ url_for('ws_partidos.api_actualizar_marcador', partido_id=partido.id) }}",
+            API_EVENTO: "{{ url_for('ws_partidos.api_registrar_evento', partido_id=partido.id) }}",
+            EQUIPO_LOCAL: "{{ partido.equipo_local }}",
+            EQUIPO_VISITANTE: "{{ partido.equipo_visitante }}",
+            ANIMATION_DURATION: 5000,
+            SYNC_DELAY: 300
+        };
+
+        // =========================
+        // STATE MANAGEMENT
+        // =========================
+        const state = {
+            eventCount: 0,
+            stats: {
+                goles: 0,
+                amarillas: 0,
+                rojas: 0,
+                cambios: 0
+            },
+            selectedEventType: null,
+            syncTimeout: null,
+            eventTimeout: null
+        };
+
+        // =========================
+        // DOM ELEMENTS
+        // =========================
+        const elements = {
+            // Scoreboard
+            inpGolesLocal: document.getElementById('inpGolesLocal'),
+            inpGolesVisitante: document.getElementById('inpGolesVisitante'),
+            inpEstado: document.getElementById('inpEstado'),
+            chkMostrar: document.getElementById('chkMostrar'),
+            golesLocalSpan: document.getElementById('golesLocal'),
+            golesVisitanteSpan: document.getElementById('golesVisitante'),
+            displayGolesLocal: document.getElementById('displayGolesLocal'),
+            displayGolesVisitante: document.getElementById('displayGolesVisitante'),
+            estadoSpan: document.getElementById('estadoPartido'),
+            overlay: document.getElementById('scoreOverlay'),
+
+            // Events
+            eventTypeBtns: document.querySelectorAll('.event-type-btn'),
+            selTipoEvento: document.getElementById('selTipoEvento'),
+            selEquipoEvento: document.getElementById('selEquipoEvento'),
+            inpMinutoEvento: document.getElementById('inpMinutoEvento'),
+            inpJugador1: document.getElementById('inpJugador1'),
+            inpJugador2: document.getElementById('inpJugador2'),
+            inpTextoLibre: document.getElementById('inpTextoLibre'),
+            grupoJugador2: document.getElementById('grupoJugador2'),
+            btnLanzarEvento: document.getElementById('btnLanzarEvento'),
+            eventOverlayAdmin: document.getElementById('eventOverlayAdmin'),
+
+            // Timeline & Stats
+            timelineContainer: document.getElementById('timelineContainer'),
+            eventCount: document.getElementById('eventCount'),
+            statGoles: document.getElementById('statGoles'),
+            statAmarillas: document.getElementById('statAmarillas'),
+            statRojas: document.getElementById('statRojas'),
+            statCambios: document.getElementById('statCambios')
+        };
+
+        // =========================
+        // SCOREBOARD FUNCTIONS
+        // =========================
+        function syncScoreboard() {
+            console.log('🔄 Sincronizando marcador...');
+
+            const golesLocal = parseInt(elements.inpGolesLocal.value) || 0;
+            const golesVisitante = parseInt(elements.inpGolesVisitante.value) || 0;
+            const estado = elements.inpEstado.value || '';
+            const mostrar = elements.chkMostrar.checked;
+
+            // Update UI
+            elements.golesLocalSpan.textContent = golesLocal;
+            elements.golesVisitanteSpan.textContent = golesVisitante;
+            elements.displayGolesLocal.textContent = golesLocal;
+            elements.displayGolesVisitante.textContent = golesVisitante;
+            elements.estadoSpan.textContent = estado;
+            elements.overlay.style.display = mostrar ? 'flex' : 'none';
+
+            // Debounce backend sync
+            if (state.syncTimeout) clearTimeout(state.syncTimeout);
+            state.syncTimeout = setTimeout(() => sendScoreboardUpdate(golesLocal, golesVisitante, estado, mostrar), CONFIG.SYNC_DELAY);
+        }
+
+        async function sendScoreboardUpdate(golesLocal, golesVisitante, estado, mostrar) {
+            const payload = {
+                goles_local: golesLocal,
+                goles_visitante: golesVisitante,
+                texto_estado: estado,
+                mostrar_overlay: mostrar
+            };
+
+            console.log('📤 Enviando actualización:', payload);
+
+            try {
+                const response = await fetch(CONFIG.API_MARCADOR, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                console.log('✅ Respuesta:', data);
+
+                if (!data.ok) {
+                    showNotification('Error al actualizar marcador', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showNotification('Error de conexión', 'error');
+            }
+        }
+
+        // =========================
+        // EVENT FUNCTIONS
+        // =========================
+        function selectEventType(type) {
+            state.selectedEventType = type;
+            elements.selTipoEvento.value = type;
+
+            // Update UI
+            elements.eventTypeBtns.forEach(btn => {
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Show/hide second player field for substitutions
+            if (type === 'cambio') {
+                elements.grupoJugador2.style.display = 'block';
+            } else {
+                elements.grupoJugador2.style.display = 'none';
+            }
+        }
+
+        function buildEventMessage(event) {
+            const { tipo, equipo, jugador1, jugador2, minuto, texto_libre } = event;
+            const nombreEquipo = equipo === 'local' ? CONFIG.EQUIPO_LOCAL : CONFIG.EQUIPO_VISITANTE;
+
+            let titulo = '';
+            let subtitulo = '';
+
+            switch (tipo) {
+                case 'gol':
+                    titulo = '¡GOL!';
+                    subtitulo = jugador1
+                        ? `${jugador1} (${nombreEquipo})`
+                        : `Gol de ${nombreEquipo}`;
+                    break;
+                case 'penal':
+                    titulo = 'PENAL';
+                    subtitulo = jugador1
+                        ? `${nombreEquipo} - Ejecuta ${jugador1}`
+                        : `Penal a favor de ${nombreEquipo}`;
+                    break;
+                case 'offside':
+                    titulo = 'FUERA DE JUEGO';
+                    subtitulo = jugador1
+                        ? `${jugador1} (${nombreEquipo})`
+                        : `Offside de ${nombreEquipo}`;
+                    break;
+                case 'amarilla':
+                    titulo = 'TARJETA AMARILLA';
+                    subtitulo = jugador1
+                        ? `${jugador1} (${nombreEquipo})`
+                        : `Amonestación en ${nombreEquipo}`;
+                    break;
+                case 'roja':
+                    titulo = 'TARJETA ROJA';
+                    subtitulo = jugador1
+                        ? `${jugador1} (${nombreEquipo})`
+                        : `Expulsión en ${nombreEquipo}`;
+                    break;
+                case 'cambio':
+                    titulo = 'CAMBIO';
+                    subtitulo = jugador1 && jugador2
+                        ? `${nombreEquipo}: Sale ${jugador1}, entra ${jugador2}`
+                        : `Cambio en ${nombreEquipo}`;
+                    break;
+                default:
+                    titulo = 'EVENTO';
+                    subtitulo = texto_libre || `Nuevo evento en ${nombreEquipo}`;
+            }
+
+            if (minuto) {
+                subtitulo += ` • ${minuto}'`;
+            }
+
+            if (texto_libre && tipo !== 'cambio') {
+                subtitulo += ` • ${texto_libre}`;
+            }
+
+            return { titulo, subtitulo };
+        }
+
+        function getEventIcon(tipo) {
+            const icons = {
+                gol: '⚽',
+                penal: '🎯',
+                offside: '🚩',
+                amarilla: '🟨',
+                roja: '🟥',
+                cambio: '🔁'
+            };
+            return icons[tipo] || '📣';
+        }
+
+        function showEventAnimation(event) {
+            if (!elements.eventOverlayAdmin) return;
+
+            if (state.eventTimeout) {
+                clearTimeout(state.eventTimeout);
+                elements.eventOverlayAdmin.classList.remove('show');
+            }
+
+            const { titulo, subtitulo } = buildEventMessage(event);
+            const tipoClase = ['gol', 'penal', 'offside', 'amarilla', 'roja', 'cambio'].includes(event.tipo)
+                ? event.tipo
+                : 'otro';
+            const icono = getEventIcon(event.tipo);
+
+            elements.eventOverlayAdmin.innerHTML = `
+                <div class="event-banner ${tipoClase}">
+                    <div class="event-icon">${icono}</div>
+                    <div class="event-texts">
+                        <div class="event-title">${titulo}</div>
+                        <div class="event-subtitle">${subtitulo}</div>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => elements.eventOverlayAdmin.classList.add('show'), 50);
+
+            console.log('✨ Evento mostrado:', event);
+
+            state.eventTimeout = setTimeout(() => {
+                elements.eventOverlayAdmin.classList.remove('show');
+            }, CONFIG.ANIMATION_DURATION);
+        }
+
+        function addEventToTimeline(event) {
+            const { tipo, equipo, jugador1, minuto } = event;
+            const { titulo, subtitulo } = buildEventMessage(event);
+            const icono = getEventIcon(tipo);
+            const nombreEquipo = equipo === 'local' ? CONFIG.EQUIPO_LOCAL : CONFIG.EQUIPO_VISITANTE;
+
+            // Remove empty state if exists
+            const emptyState = elements.timelineContainer.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const timelineItem = document.createElement('div');
+            timelineItem.className = 'timeline-item';
+
+            const tipoClase = ['gol', 'penal', 'offside', 'amarilla', 'roja', 'cambio'].includes(tipo)
+                ? tipo
+                : 'otro';
+
+            timelineItem.innerHTML = `
+                <div class="timeline-icon" style="background: var(--${tipoClase === 'gol' ? 'warning' : tipoClase === 'roja' || tipoClase === 'amarilla' ? 'danger' : 'primary'}-gradient)">
+                    ${icono}
+                </div>
+                <div class="timeline-content">
+                    <div class="timeline-time">${minuto ? minuto + "'" : 'Ahora'}</div>
+                    <div class="timeline-text">${titulo}</div>
+                    <div class="timeline-subtext">${subtitulo}</div>
+                </div>
+            `;
+
+            elements.timelineContainer.insertBefore(timelineItem, elements.timelineContainer.firstChild);
+
+            // Update counter
+            state.eventCount++;
+            elements.eventCount.textContent = `${state.eventCount} evento${state.eventCount !== 1 ? 's' : ''}`;
+
+            // Update stats
+            updateStats(tipo);
+        }
+
+        function updateStats(tipo) {
+            switch (tipo) {
+                case 'gol':
+                    state.stats.goles++;
+                    elements.statGoles.textContent = state.stats.goles;
+                    break;
+                case 'amarilla':
+                    state.stats.amarillas++;
+                    elements.statAmarillas.textContent = state.stats.amarillas;
+                    break;
+                case 'roja':
+                    state.stats.rojas++;
+                    elements.statRojas.textContent = state.stats.rojas;
+                    break;
+                case 'cambio':
+                    state.stats.cambios++;
+                    elements.statCambios.textContent = state.stats.cambios;
+                    break;
+            }
+        }
+
+        async function launchEvent() {
+            const tipo = state.selectedEventType;
+            const equipo = elements.selEquipoEvento.value;
+            const minuto = elements.inpMinutoEvento.value.trim();
+            const jugador1 = elements.inpJugador1.value.trim();
+            const jugador2 = elements.inpJugador2.value.trim();
+            const texto = elements.inpTextoLibre.value.trim();
+
+            // Validation
+            if (!tipo) {
+                showNotification('Selecciona un tipo de evento', 'error');
+                return;
+            }
+            if (!equipo) {
+                showNotification('Selecciona el equipo', 'error');
+                return;
+            }
+            if (tipo === 'cambio' && (!jugador1 || !jugador2)) {
+                showNotification('Para un cambio debes indicar ambos jugadores', 'error');
+                return;
+            }
+
+            const payload = {
+                tipo,
+                equipo,
+                jugador1: jugador1 || null,
+                jugador2: jugador2 || null,
+                minuto: minuto || null,
+                texto_libre: texto || null
+            };
+
+            console.log('📡 Lanzando evento:', payload);
+
+            // Show animation
+            showEventAnimation(payload);
+
+            // Add to timeline
+            addEventToTimeline(payload);
+
+            // Send to backend
+            try {
+                const response = await fetch(CONFIG.API_EVENTO, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                console.log('✅ Evento registrado:', data);
+
+                if (data.ok) {
+                    showNotification('Evento lanzado correctamente', 'success');
+                    clearEventForm();
+                } else {
+                    showNotification('Error al registrar evento', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showNotification('Error de conexión', 'error');
+            }
+        }
+
+        function clearEventForm() {
+            elements.inpMinutoEvento.value = '';
+            elements.inpJugador1.value = '';
+            elements.inpJugador2.value = '';
+            elements.inpTextoLibre.value = '';
+        }
+
+        // =========================
+        // NOTIFICATIONS
+        // =========================
+        function showNotification(message, type = 'info') {
+            // Simple console notification - can be extended with toast notifications
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // =========================
+        // EVENT LISTENERS
+        // =========================
+        function initializeEventListeners() {
+            // Scoreboard
+            elements.inpGolesLocal.addEventListener('input', syncScoreboard);
+            elements.inpGolesVisitante.addEventListener('input', syncScoreboard);
+            elements.inpEstado.addEventListener('input', syncScoreboard);
+            elements.chkMostrar.addEventListener('change', syncScoreboard);
+
+            // Event types
+            elements.eventTypeBtns.forEach(btn => {
+                btn.addEventListener('click', () => selectEventType(btn.dataset.type));
+            });
+
+            // Launch event
+            elements.btnLanzarEvento.addEventListener('click', launchEvent);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + Enter to launch event
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    launchEvent();
+                }
+            });
+        }
+
+        // =========================
+        // INITIALIZATION
+        // =========================
+        function initialize() {
+            console.log('🚀 Inicializando Control Room...');
+
+            syncScoreboard();
+            initializeEventListeners();
+
+            console.log('✅ Control Room listo');
+        }
+
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            initialize();
+        }
+    </script>
+</body>
+
+</html>
