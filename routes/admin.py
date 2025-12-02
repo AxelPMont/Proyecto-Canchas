@@ -24,6 +24,7 @@ from models.transmisiones import TransmisionesModel
 from models.partidos import PartidosModel
 from models.grupos import GruposModel
 from models.publicaciones import PublicacionesModel
+from models.reservas import ReservasModel
 from conexionBD import Conexion
 from flask import abort, render_template, request, redirect, url_for, flash
 
@@ -37,6 +38,7 @@ transmisiones_model = TransmisionesModel()
 partidos_model = PartidosModel()
 grupos_model = GruposModel()
 publicaciones_model = PublicacionesModel()
+reservas_model = ReservasModel()
 
 # =======================
 # PANEL PRINCIPAL
@@ -1236,3 +1238,47 @@ def listar_publicaciones():
     """API: listar todas las publicaciones en JSON"""
     publicaciones = publicaciones_model.listar()
     return {"publicaciones": publicaciones}, 200
+
+
+# =======================
+# RESERVAS
+# =======================
+@ws_admin.route("/reservas/listar", methods=["GET"])
+def listar_reservas():
+    fecha = request.args.get("fecha")
+    cancha_id = request.args.get("cancha_id", type=int)
+    estado = request.args.get("estado")
+
+    reservas = reservas_model.listar_todas(fecha, cancha_id, estado)
+    return {"reservas": reservas}, 200
+
+
+@ws_admin.route("/reservas/estado", methods=["POST"])
+def cambiar_estado_reserva():
+    reserva_id = request.form.get("reserva_id", type=int)
+    nuevo_estado = request.form.get("estado")
+
+    if not reserva_id or not nuevo_estado:
+        flash("Datos incompletos", "danger")
+        return redirect(url_for("ws_admin.panel_principal") + "#reservas")
+
+    if nuevo_estado not in ["pendiente", "confirmada", "cancelada", "completada"]:
+        flash("Estado no válido", "danger")
+        return redirect(url_for("ws_admin.panel_principal") + "#reservas")
+
+    if reservas_model.actualizar_estado(reserva_id, nuevo_estado):
+        flash(f"Reserva #{reserva_id} actualizada a '{nuevo_estado}'", "success")
+    else:
+        flash("Error al actualizar la reserva", "danger")
+
+    return redirect(url_for("ws_admin.panel_principal") + "#reservas")
+
+
+@ws_admin.route("/reservas/eliminar/<int:reserva_id>", methods=["POST"])
+def eliminar_reserva(reserva_id):
+    if reservas_model.eliminar(reserva_id):
+        flash(f"Reserva #{reserva_id} eliminada", "success")
+    else:
+        flash("Error al eliminar la reserva", "danger")
+
+    return redirect(url_for("ws_admin.panel_principal") + "#reservas")

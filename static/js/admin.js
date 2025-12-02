@@ -575,4 +575,107 @@ window.openEditTransmissionModal = function(button) {
     });
 
     console.log('Panel de administración cargado exitosamente');
+
+    const reservasSection = document.getElementById('reservas');
+    if (reservasSection) {
+        if (reservasSection.classList.contains('active')) {
+            cargarReservas();
+        }
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.target.classList.contains('active')) {
+                    cargarReservas();
+                }
+            });
+        });
+        observer.observe(reservasSection, { attributes: true, attributeFilter: ['class'] });
+    }
 });
+
+function cargarReservas() {
+    const estado = document.getElementById('filtroEstadoReserva')?.value || '';
+    const fecha = document.getElementById('filtroFechaReserva')?.value || '';
+
+    let url = '/admin/reservas/listar?';
+    if (estado) url += `estado=${estado}&`;
+    if (fecha) url += `fecha=${fecha}&`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById('reservasBody');
+            if (!tbody) return;
+
+            if (!data.reservas || data.reservas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No hay reservas</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.reservas.map(r => {
+                const [year, month, day] = r.fecha.split('-');
+                const fecha = `${day}/${month}/${year}`;
+                const horaInicio = r.hora_inicio?.substring(0, 5) || '';
+                const horaFin = r.hora_fin?.substring(0, 5) || '';
+
+                let badgeClass = 'bg-secondary';
+                if (r.estado === 'pendiente') badgeClass = 'bg-warning';
+                if (r.estado === 'confirmada') badgeClass = 'bg-success';
+                if (r.estado === 'cancelada') badgeClass = 'bg-danger';
+                if (r.estado === 'completada') badgeClass = 'bg-info';
+
+                return `
+                    <tr>
+                        <td>${r.id}</td>
+                        <td>${r.cancha_nombre}</td>
+                        <td>${fecha}</td>
+                        <td>${horaInicio} - ${horaFin}</td>
+                        <td><strong>${r.cliente_nombre}</strong></td>
+                        <td>${r.cliente_telefono}</td>
+                        <td><span class="badge ${badgeClass}">${r.estado}</span></td>
+                        <td>
+                            <div class="btn-group">
+                                ${r.estado === 'pendiente' ? `
+                                    <form action="/admin/reservas/estado" method="POST" style="display:inline;">
+                                        <input type="hidden" name="reserva_id" value="${r.id}">
+                                        <input type="hidden" name="estado" value="confirmada">
+                                        <button type="submit" class="btn-admin btn-sm btn-success" title="Confirmar">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                    <form action="/admin/reservas/estado" method="POST" style="display:inline;">
+                                        <input type="hidden" name="reserva_id" value="${r.id}">
+                                        <input type="hidden" name="estado" value="cancelada">
+                                        <button type="submit" class="btn-admin btn-sm btn-danger" title="Cancelar">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+                                ` : ''}
+                                ${r.estado === 'confirmada' ? `
+                                    <form action="/admin/reservas/estado" method="POST" style="display:inline;">
+                                        <input type="hidden" name="reserva_id" value="${r.id}">
+                                        <input type="hidden" name="estado" value="completada">
+                                        <button type="submit" class="btn-admin btn-sm btn-info" title="Marcar completada">
+                                            <i class="bi bi-check-all"></i>
+                                        </button>
+                                    </form>
+                                ` : ''}
+                                <form action="/admin/reservas/eliminar/${r.id}" method="POST" style="display:inline;"
+                                      onsubmit="return confirm('¿Eliminar esta reserva?');">
+                                    <button type="submit" class="btn-admin btn-sm btn-outline-danger" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        })
+        .catch(err => {
+            console.error('Error cargando reservas:', err);
+            const tbody = document.getElementById('reservasBody');
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger">Error al cargar reservas</td></tr>`;
+            }
+        });
+}

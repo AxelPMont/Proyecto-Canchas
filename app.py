@@ -3,7 +3,8 @@ from routes.partidos import ws_partidos
 from routes.area import ws_area
 from routes.dashboard import ws_dashboard   
 from routes.admin import ws_admin  
-from routes.equipos import ws_equipos 
+from routes.equipos import ws_equipos
+from routes.reservas import ws_reservas
 
 import os
 
@@ -16,7 +17,8 @@ app.register_blueprint(ws_partidos)
 app.register_blueprint(ws_area)
 app.register_blueprint(ws_dashboard)  
 app.register_blueprint(ws_admin)
-app.register_blueprint(ws_equipos) 
+app.register_blueprint(ws_equipos)
+app.register_blueprint(ws_reservas)
 app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "img")
 # =======================
 # PANTALLA PRINCIPAL

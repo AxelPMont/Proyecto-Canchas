@@ -68,6 +68,14 @@
       </div>
 
       <div class="menu-section">
+        <div class="menu-section-title">Alquileres</div>
+        <a class="menu-item" data-section="reservas">
+          <i class="bi bi-calendar-check"></i>
+          Reservas
+        </a>
+      </div>
+
+      <div class="menu-section">
         <div class="menu-section-title">Configuración</div>
         <a class="menu-item" data-section="fields">
           <i class="bi bi-geo-alt-fill"></i>
@@ -1686,6 +1694,50 @@
                 </form>
             </div>
         </div>
+
+          <!-- RESERVAS SECTION -->
+          <div class="content-section" id="reservas">
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title">Gestión de Reservas</h3>
+                <div class="d-flex gap-2">
+                  <select id="filtroEstadoReserva" class="form-select form-select-sm" style="width: auto;">
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="confirmada">Confirmada</option>
+                    <option value="cancelada">Cancelada</option>
+                    <option value="completada">Completada</option>
+                  </select>
+                  <input type="date" id="filtroFechaReserva" class="form-control form-control-sm" style="width: auto;">
+                  <button class="btn-admin btn-sm" onclick="cargarReservas()">
+                    <i class="bi bi-search"></i> Filtrar
+                  </button>
+                </div>
+              </div>
+
+              <table class="data-table" id="tablaReservas">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Cancha</th>
+                    <th>Fecha</th>
+                    <th>Horario</th>
+                    <th>Cliente</th>
+                    <th>Teléfono</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="reservasBody">
+                  <tr>
+                    <td colspan="8" class="text-center text-muted">
+                      Cargando reservas...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <!-- FIELDS SECTION -->
           <div class="content-section" id="fields">

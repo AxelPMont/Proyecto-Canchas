@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Cancha - Portal Deportivo Municipal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-red: #d50a0a;
+            --secondary-red: #8b0000;
+            --dark-bg: #1a1a1a;
+            --darker-bg: #0a0a0a;
+            --light-gray: #f5f5f5;
+            --medium-gray: #cccccc;
+            --text-gray: #666666;
+            --success-green: #28a745;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--light-gray);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #333;
+        }
+
+        .navbar-main {
+            background: var(--darker-bg);
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .navbar-brand-espn {
+            background: var(--primary-red);
+            padding: 0.75rem 1.5rem;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: white !important;
+            letter-spacing: -1px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .navbar-brand-espn:hover {
+            background: var(--secondary-red);
+        }
+
+        .navbar-nav-main {
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-link-main {
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 1rem 1.25rem !important;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+            text-decoration: none;
+        }
+
+        .nav-link-main:hover,
+        .nav-link-main.active {
+            background: rgba(255,255,255,0.1);
+            border-bottom: 3px solid var(--primary-red);
+        }
+
+        .navbar-tools {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0 1rem;
+        }
+
+        .btn-search,
+        .btn-user {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-search:hover,
+        .btn-user:hover {
+            color: var(--primary-red);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--secondary-red) 100%);
+            color: white;
+            padding: 2.5rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-weight: 900;
+            font-size: 2.5rem;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 12px;
+        }
+
+        .card-header {
+            background: var(--dark-bg);
+            color: white;
+            font-weight: 600;
+            border-radius: 12px 12px 0 0 !important;
+            padding: 1rem 1.25rem;
+        }
+
+        .slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .slot {
+            padding: 12px 8px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .slot.disponible {
+            background: #e8f5e9;
+            color: var(--success-green);
+        }
+
+        .slot.disponible:hover {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .slot.disponible.selected {
+            background: var(--success-green);
+            color: white;
+            border-color: #1b5e20;
+        }
+
+        .slot.ocupado {
+            background: #ffebee;
+            color: #c62828;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-primary {
+            background: var(--primary-red);
+            border-color: var(--primary-red);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-red);
+            border-color: var(--secondary-red);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 0.2rem rgba(213, 10, 10, 0.25);
+        }
+
+        .resumen-reserva {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-flash {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-main">
+        <div class="container-fluid">
+            <a class="navbar-brand-espn" href="{{ url_for('ws_partidos.pantalla_publica_partidos') }}">
+                PDM
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" style="border-color: rgba(255,255,255,0.3);">
+                <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav navbar-nav-main">
+                    <li class="nav-item">
+                        <a class="nav-link-main" href="{{ url_for('ws_partidos.pantalla_publica_partidos') }}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-main" href="#">Fútbol</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-main" href="#">Torneos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-main" href="#">Clasificaciones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-main" href="#">Transmisiones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-main" href="#">Canchas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-main active" href="{{ url_for('ws_reservas.pagina_reservas') }}">Reservas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link-main" href="{{ url_for('ws_partidos.todas_las_noticias') }}">Noticias</a>
+                    </li>
+                </ul>
+
+                <div class="navbar-tools ms-auto">
+                    <button class="btn-search"><i class="bi bi-search"></i></button>
+                    <button class="btn-user"><i class="bi bi-person-circle"></i></button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-flash alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="page-header">
+        <div class="container">
+            <h1><i class="bi bi-calendar-check"></i> Reservar Cancha</h1>
+            <p class="mb-0">Selecciona la cancha, fecha y horario disponible para tu reserva</p>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-sliders"></i> Seleccionar Cancha y Fecha
+                    </div>
+                    <div class="card-body">
+                        <form id="filtroForm" class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Cancha</label>
+                                <select name="cancha_id" id="canchaSelect" class="form-select" required>
+                                    {% for cancha in canchas %}
+                                        <option value="{{ cancha.id }}" {% if cancha.id == cancha_id %}selected{% endif %}>
+                                            {{ cancha.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Fecha</label>
+                                <input type="date" name="fecha" id="fechaInput" class="form-control"
+                                       value="{{ fecha_seleccionada }}"
+                                       min="{{ fecha_minima }}"
+                                       max="{{ fecha_maxima }}" required>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-clock"></i> Horarios Disponibles
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <span class="badge bg-success me-2">Disponible</span>
+                            <span class="badge bg-danger">Ocupado</span>
+                            <small class="text-muted ms-3">Puedes seleccionar de 1 a 3 horas consecutivas</small>
+                        </div>
+                        <div class="slots-grid" id="slotsContainer">
+                            <div class="text-center text-muted py-3">Cargando horarios...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header">
+                        <i class="bi bi-person-lines-fill"></i> Datos de Reserva
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('ws_reservas.crear_reserva') }}" method="POST" id="reservaForm">
+                            <input type="hidden" name="cancha_id" id="formCanchaId" value="{{ cancha_id }}">
+                            <input type="hidden" name="fecha" id="formFecha" value="{{ fecha_seleccionada }}">
+                            <input type="hidden" name="hora_inicio" id="formHoraInicio" value="">
+                            <input type="hidden" name="hora_fin" id="formHoraFin" value="">
+
+                            <div id="resumenReserva" class="resumen-reserva d-none">
+                                <strong><i class="bi bi-info-circle"></i> Tu reserva:</strong>
+                                <div id="resumenTexto"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nombre completo *</label>
+                                <input type="text" name="cliente_nombre" class="form-control" required
+                                       placeholder="Ingresa tu nombre">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Teléfono *</label>
+                                <input type="tel" name="cliente_telefono" class="form-control" required
+                                       placeholder="999 999 999">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email (opcional)</label>
+                                <input type="email" name="cliente_email" class="form-control"
+                                       placeholder="tu@email.com">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Notas (opcional)</label>
+                                <textarea name="notas" class="form-control" rows="2"
+                                          placeholder="Alguna indicación especial..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2" id="btnReservar" disabled>
+                                <i class="bi bi-check-circle"></i> Confirmar Reserva
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const canchaSelect = document.getElementById('canchaSelect');
+        const fechaInput = document.getElementById('fechaInput');
+        const slotsContainer = document.getElementById('slotsContainer');
+        let selectedSlots = [];
+
+        canchaSelect.addEventListener('change', cargarSlots);
+        fechaInput.addEventListener('change', cargarSlots);
+
+        cargarSlots();
+
+        function cargarSlots() {
+            const cancha_id = canchaSelect.value;
+            const fecha = fechaInput.value;
+
+            if (!cancha_id || !fecha) return;
+
+            selectedSlots = [];
+            actualizarFormulario();
+            slotsContainer.innerHTML = '<div class="text-center text-muted py-3">Cargando horarios...</div>';
+
+            fetch(`/reservas/disponibilidad?cancha_id=${cancha_id}&fecha=${fecha}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.ok || !data.slots) {
+                        slotsContainer.innerHTML = '<div class="text-center text-danger py-3">Error al cargar horarios</div>';
+                        return;
+                    }
+
+                    slotsContainer.innerHTML = data.slots.map(slot => `
+                        <div class="slot ${slot.disponible ? 'disponible' : 'ocupado'}"
+                             data-hora-inicio="${slot.hora_inicio}"
+                             data-hora-fin="${slot.hora_fin}"
+                             ${slot.disponible ? 'onclick="seleccionarSlot(this)"' : ''}>
+                            <div class="fw-bold">${slot.hora_inicio}</div>
+                            <small>a ${slot.hora_fin}</small>
+                        </div>
+                    `).join('');
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    slotsContainer.innerHTML = '<div class="text-center text-danger py-3">Error al cargar horarios</div>';
+                });
+        }
+
+        function seleccionarSlot(element) {
+            const horaInicio = element.dataset.horaInicio;
+            const horaFin = element.dataset.horaFin;
+
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                selectedSlots = selectedSlots.filter(s => s.inicio !== horaInicio);
+            } else {
+                if (selectedSlots.length >= 3) {
+                    alert('Máximo 3 horas por reserva');
+                    return;
+                }
+
+                if (selectedSlots.length > 0) {
+                    const lastSlot = selectedSlots[selectedSlots.length - 1];
+                    const firstSlot = selectedSlots[0];
+
+                    if (horaInicio !== lastSlot.fin && horaFin !== firstSlot.inicio) {
+                        document.querySelectorAll('.slot.selected').forEach(s => s.classList.remove('selected'));
+                        selectedSlots = [];
+                    }
+                }
+
+                element.classList.add('selected');
+                selectedSlots.push({ inicio: horaInicio, fin: horaFin });
+                selectedSlots.sort((a, b) => a.inicio.localeCompare(b.inicio));
+            }
+
+            actualizarFormulario();
+        }
+
+        function actualizarFormulario() {
+            const resumen = document.getElementById('resumenReserva');
+            const resumenTexto = document.getElementById('resumenTexto');
+            const btnReservar = document.getElementById('btnReservar');
+
+            if (selectedSlots.length > 0) {
+                const horaInicio = selectedSlots[0].inicio;
+                const horaFin = selectedSlots[selectedSlots.length - 1].fin;
+
+                document.getElementById('formCanchaId').value = canchaSelect.value;
+                document.getElementById('formFecha').value = fechaInput.value;
+                document.getElementById('formHoraInicio').value = horaInicio;
+                document.getElementById('formHoraFin').value = horaFin;
+
+                const canchaTexto = canchaSelect.options[canchaSelect.selectedIndex].text;
+                resumenTexto.innerHTML = `
+                    <div><strong>Cancha:</strong> ${canchaTexto}</div>
+                    <div><strong>Fecha:</strong> ${fechaInput.value}</div>
+                    <div><strong>Horario:</strong> ${horaInicio} - ${horaFin}</div>
+                    <div><strong>Duración:</strong> ${selectedSlots.length} hora(s)</div>
+                `;
+
+                resumen.classList.remove('d-none');
+                btnReservar.disabled = false;
+            } else {
+                document.getElementById('formHoraInicio').value = '';
+                document.getElementById('formHoraFin').value = '';
+                resumen.classList.add('d-none');
+                btnReservar.disabled = true;
+            }
+        }
+
+        setTimeout(() => {
+            document.querySelectorAll('.alert-flash').forEach(alert => {
+                alert.classList.remove('show');
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

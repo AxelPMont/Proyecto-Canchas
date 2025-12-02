@@ -221,7 +221,39 @@ CREATE TABLE posiciones (
 );
 
 
-ALTER TABLE partidos 
+ALTER TABLE partidos
 ALTER COLUMN equipo_local_id DROP NOT NULL;
 ALTER TABLE partidos
 ALTER COLUMN equipo_visitante_id DROP NOT NULL;
+
+-- =========================================
+-- 12. RESERVAS (alquiler de canchas)
+-- =========================================
+DROP TABLE IF EXISTS reservas CASCADE;
+
+CREATE TABLE reservas (
+    id              SERIAL PRIMARY KEY,
+    cancha_id       INTEGER NOT NULL REFERENCES canchas(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    fecha           DATE NOT NULL,
+    hora_inicio     TIME NOT NULL,
+    hora_fin        TIME NOT NULL,
+    cliente_nombre  VARCHAR(100) NOT NULL,
+    cliente_telefono VARCHAR(20) NOT NULL,
+    cliente_email   VARCHAR(120),
+    estado          VARCHAR(20) DEFAULT 'pendiente',
+        -- pendiente, confirmada, cancelada, completada
+    notas           TEXT,
+    precio          DECIMAL(10,2),
+    fecha_creacion  TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+
+    CONSTRAINT chk_horario_valido CHECK (hora_fin > hora_inicio)
+);
+
+CREATE INDEX idx_reservas_cancha ON reservas (cancha_id);
+CREATE INDEX idx_reservas_fecha ON reservas (fecha);
+CREATE INDEX idx_reservas_estado ON reservas (estado);
+CREATE UNIQUE INDEX idx_reservas_sin_conflicto
+    ON reservas (cancha_id, fecha, hora_inicio, hora_fin)
+    WHERE estado NOT IN ('cancelada');
