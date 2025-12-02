@@ -1,2 +1,0 @@
-# Municipalidad-de-jayanca
-
